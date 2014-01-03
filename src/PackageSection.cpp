@@ -27,7 +27,7 @@ void PackageSection::setup(std::string name, std::string file)
 
 void PackageSection::setName(std::string name)
 {
-    if(name != "")
+    if(m_name != "")
     {
         return;
 
@@ -46,7 +46,7 @@ std::string PackageSection::getName()
 
 void PackageSection::setFile(std::string file)
 {
-    if(file != "")
+    if(m_file != "")
     {
         return;
 

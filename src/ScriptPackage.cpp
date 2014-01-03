@@ -1,9 +1,10 @@
 #include <fstream>
+#include <iostream>
 #include "ScriptPackage.h"
 #include "Config.h"
 #include "Convert/convertstring.h"
 #ifdef FAKEWPILIB
-#include "../FakeWPILib/FakeWPILib.h"
+#include "FakeWPILib/FakeWPILib.h"
 #else
 #include <WPILib.h>
 #endif
@@ -12,7 +13,7 @@ ScriptPackage::ScriptPackage()
 {
     m_engine = NULL;
     m_initRoutine = NULL;
-    setError(ScriptPackage::Error::NotLoaded, "ScriptPackage just initialized not loaded yet.");
+    setError(ScriptPackage::NotLoaded, "ScriptPackage just initialized not loaded yet.");
 
 
 }
@@ -37,13 +38,14 @@ std::string ScriptPackage::getLastErrorMessage()
 
 bool ScriptPackage::isValid()
 {
-    return getLastError() == ScriptPackage::Error::NoError;
+    return getLastError() == ScriptPackage::NoError;
 
 }
 
 ScriptPackage::Error ScriptPackage::load(std::string path)
 {
     unload();
+
     m_path = addExstension(path);
 
     std::fstream file;
@@ -51,7 +53,7 @@ ScriptPackage::Error ScriptPackage::load(std::string path)
 
     if(!file)
     {
-        setError(ScriptPackage::Error::CouldNotOpenFile, "Could not open file at: " + m_path);
+        setError(ScriptPackage::CouldNotOpenFile, "Could not open file at: " + m_path);
         unload();
         return getLastError();
 
@@ -61,11 +63,10 @@ ScriptPackage::Error ScriptPackage::load(std::string path)
     int headerSize = header.size()*sizeof(char*);
     char headerBuffer[headerSize];
     file.read(headerBuffer, headerSize);
-    delete headerBuffer;
 
     if(std::string(headerBuffer) != header)
     {
-        setError(ScriptPackage::Error::NotAScriptPackage, m_path + " is not a ScriptPackage");
+        setError(ScriptPackage::NotAScriptPackage, m_path + " is not a ScriptPackage");
         unload();
         return getLastError();
 
@@ -84,7 +85,7 @@ ScriptPackage::Error ScriptPackage::load(std::string path)
             char buffer[nameSize];
             file.read(buffer, nameSize);
             nameStr = std::string(buffer);
-            delete buffer;
+
 
         }
 
@@ -96,11 +97,10 @@ ScriptPackage::Error ScriptPackage::load(std::string path)
             char buffer[fileSize];
             file.read(buffer, fileSize);
             fileStr = std::string(buffer);
-            delete buffer;
 
         }
 
-        if(nameStr != "" && fileSize != "")
+        if(nameStr != "" || fileStr != "")
         {
             addSection(nameStr, fileStr);
 
@@ -108,11 +108,13 @@ ScriptPackage::Error ScriptPackage::load(std::string path)
 
     }
 
+    file.close();
+
     std::string projectConfigStr = getProjectConfig();
 
     if(projectConfigStr == "")
     {
-        setError(ScriptPackage::Error::MissingProjectConfig, "There was no project.cfg in the package");
+        setError(ScriptPackage::MissingProjectConfig, "There was no project.cfg in the package");
         unload();
         return getLastError();
 
@@ -120,9 +122,9 @@ ScriptPackage::Error ScriptPackage::load(std::string path)
 
     Config projectConfig;
     Config::ParseError error = projectConfig.parse(projectConfigStr);
-    if(error != Config::ParseError::NoError)
+    if(error != Config::NoError)
     {
-        setError(ScriptPackage::Error::ErrorParsingConfig, "Error parsing project.cfg: " + Config::printParseError(error));
+        setError(ScriptPackage::ErrorParsingConfig, "Error parsing project.cfg: " + Config::printParseError(error));
         unload();
         return getLastError();
 
@@ -149,22 +151,22 @@ ScriptPackage::Error ScriptPackage::load(std::string path)
        ScriptRoutine::Type routineType;
        if(type == "Disabled")
        {
-           routineType = ScriptRoutine::Type::Disabled;
+           routineType = ScriptRoutine::Disabled;
 
        }
        else if(type == "Autonomous")
        {
-           routineType = ScriptRoutine::Type::Autonomous;
+           routineType = ScriptRoutine::Autonomous;
 
        }
        else if(type == "OperatorControl")
        {
-           routineType = ScriptRoutine::Type::OperatorControl;
+           routineType = ScriptRoutine::OperatorControl;
 
        }
        else if(type == "Test")
        {
-           routineType = ScriptRoutine::Type::Test;
+           routineType = ScriptRoutine::Test;
 
        }
        else
@@ -194,7 +196,7 @@ ScriptPackage::Error ScriptPackage::load(std::string path)
 
     {//Prepares the robot init routine.
         m_initRoutine = new ScriptRoutine;
-        m_initRoutine->setup("init", ScriptRoutine::Type::Init);
+        m_initRoutine->setup("init", ScriptRoutine::Init);
 
         std::vector<std::string> scripts;
 
@@ -217,7 +219,7 @@ ScriptPackage::Error ScriptPackage::load(std::string path)
 
     if(robotConfigStr == "")
     {
-        setError(ScriptPackage::Error::MissingRobotConfig, "There was no robot.cfg in the package");
+        setError(ScriptPackage::MissingRobotConfig, "There was no robot.cfg in the package");
         unload();
         return getLastError();
 
@@ -225,9 +227,9 @@ ScriptPackage::Error ScriptPackage::load(std::string path)
 
     Config robotConfig;
     error = robotConfig.parse(robotConfigStr);
-    if(error != Config::ParseError::NoError)
+    if(error != Config::NoError)
     {
-        setError(ScriptPackage::Error::ErrorParsingConfig, "Error parsing robot.cfg: " + Config::printParseError(error));
+        setError(ScriptPackage::ErrorParsingConfig, "Error parsing robot.cfg: " + Config::printParseError(error));
         unload();
         return getLastError();
 
@@ -436,7 +438,7 @@ ScriptPackage::Error ScriptPackage::load(std::string path)
             {
                 Config cfg;
                 error = cfg.parse(section->getFile());
-                if(error !=  Config::ParseError::NoError)
+                if(error !=  Config::NoError)
                 {
                     setError(ErrorParsingConfig, "Error parsing " + section->getName() + ": " + Config::printParseError(error));
                     unload();
@@ -481,7 +483,7 @@ ScriptPackage::Error ScriptPackage::load(std::string path)
 
     }
 
-    setError(ScriptPackage::Error::NotBuilt, "The package was successfully loaded, but it hasn't been built");
+    setError(ScriptPackage::NotBuilt, "The package was successfully loaded, but it hasn't been built");
     return getLastError();
 
 }
@@ -497,14 +499,14 @@ void ScriptPackage::unload()
     m_defaultOperatorControlRoutine = "";
     m_defaultTestRoutine = "";
 
-    while(m_sections.empty())
+    while(!m_sections.empty())
     {
         delete (*m_sections.begin());
         m_sections.erase(m_sections.begin());
 
     }
 
-    while(m_routines.empty())
+    while(!m_routines.empty())
     {
         delete (*m_routines.begin());
         m_routines.erase(m_routines.begin());
@@ -514,7 +516,7 @@ void ScriptPackage::unload()
     delete m_initRoutine;
     m_initRoutine = NULL;
 
-    while(m_properties.empty())
+    while(!m_properties.empty())
     {
         std::string type = (*m_properties.begin())->getType();
         void* ptr = (*m_properties.begin())->getPtr();
@@ -615,9 +617,9 @@ void ScriptPackage::unload()
 
     }
 
-    if(getLastError() == ScriptPackage::Error::NoError || getLastError() == ScriptPackage::Error::NotBuilt)
+    if(getLastError() == ScriptPackage::NoError || getLastError() == ScriptPackage::NotBuilt)
     {
-        setError(ScriptPackage::Error::NotLoaded, "The package has not been loaded.");
+        setError(ScriptPackage::NotLoaded, "The package has not been loaded.");
 
     }
 
@@ -630,7 +632,7 @@ ScriptPackage::Error ScriptPackage::build(asIScriptEngine* engine)
         return getLastError();
 
     }
-    else if(getLastError() != ScriptPackage::Error::NotBuilt)
+    else if(getLastError() != ScriptPackage::NotBuilt)
     {
         unload();
         return getLastError();
@@ -639,7 +641,7 @@ ScriptPackage::Error ScriptPackage::build(asIScriptEngine* engine)
 
     if(engine == NULL)
     {
-        setError(ScriptPackage::Error::EngineIsNull, "The engine used to build was null");
+        setError(ScriptPackage::EngineIsNull, "The engine used to build was null");
         release();
         return getLastError();
 
@@ -653,7 +655,7 @@ ScriptPackage::Error ScriptPackage::build(asIScriptEngine* engine)
         {
             if(!(*it)->registerProperty(m_engine))
             {
-                setError(ScriptPackage::Error::CouldNotRegisterProperty, "Failed to register property: " + (*it)->getType() + " " + (*it)->getName());
+                setError(ScriptPackage::CouldNotRegisterProperty, "Failed to register property: " + (*it)->getType() + " " + (*it)->getName());
                 release();
                 return getLastError();
 
@@ -680,7 +682,7 @@ ScriptPackage::Error ScriptPackage::build(asIScriptEngine* engine)
                 module = m_engine->GetModule(section->getName().c_str(), asGM_ALWAYS_CREATE);
                 if(module->AddScriptSection(section->getName().c_str(), section->getFile().c_str()) < 0)
                 {
-                    setError(ScriptPackage::Error::CouldNotBuildScript, "Failed to add script section to the module for: " + section->getName());
+                    setError(ScriptPackage::CouldNotBuildScript, "Failed to add script section to the module for: " + section->getName());
                     release();
                     return getLastError();
 
@@ -688,7 +690,7 @@ ScriptPackage::Error ScriptPackage::build(asIScriptEngine* engine)
 
                 if(module->Build() < 0)
                 {
-                    setError(ScriptPackage::Error::CouldNotBuildScript, "Failed to build script: " + section->getName());
+                    setError(ScriptPackage::CouldNotBuildScript, "Failed to build script: " + section->getName());
                     release();
                     return getLastError();
 
@@ -766,9 +768,9 @@ void ScriptPackage::release()
 
     m_engine = NULL;
 
-    if(getLastError() == ScriptPackage::Error::NoError)
+    if(getLastError() == ScriptPackage::NoError)
     {
-        setError(ScriptPackage::Error::NotBuilt, "The package has not been built");
+        setError(ScriptPackage::NotBuilt, "The package has not been built");
 
     }
 
@@ -783,7 +785,7 @@ ScriptPackage::Error ScriptPackage::write(std::string path)
 
     if(!file)
     {
-        setError(ScriptPackage::Error::CouldNotOpenFile, "Could not open file at: " + m_path);
+        setError(ScriptPackage::CouldNotOpenFile, "Could not open file at: " + m_path);
         unload();
         return getLastError();
 
@@ -793,11 +795,13 @@ ScriptPackage::Error ScriptPackage::write(std::string path)
     int headerSize = header.size()*sizeof(char*);
     file.write(header.c_str(), headerSize);
 
-    std::string projectConfigStr;
-    std::string robotConfigStr;
+    std::string projectConfigStr = getProjectConfig();
+    std::string robotConfigStr = getRobotConfig();
     std::string globalConfigStr;
 
+    if(projectConfigStr == "")
     {//Add all of the Routines
+        std::cout << "package already loaded. writing using objects.\n";
         std::list<ScriptRoutine*>::iterator it;
         for(it = m_routines.begin(); it != m_routines.end(); it++)
         {
@@ -806,27 +810,27 @@ ScriptPackage::Error ScriptPackage::write(std::string path)
             std::vector<std::string> scripts = (*it)->getScripts();
 
             std::string type;
-            if(routineType == ScriptRoutine::Type::Init)
+            if(routineType == ScriptRoutine::Init)
             {
                 type = "Init";
 
             }
-            else if(routineType == ScriptRoutine::Type::Disabled)
+            else if(routineType == ScriptRoutine::Disabled)
             {
                 type = "Disabled";
 
             }
-            else if(routineType == ScriptRoutine::Type::Autonomous)
+            else if(routineType == ScriptRoutine::Autonomous)
             {
                 type = "Autonomous";
 
             }
-            else if(routineType == ScriptRoutine::Type::OperatorControl)
+            else if(routineType == ScriptRoutine::OperatorControl)
             {
                 type = "OperatorControl";
 
             }
-            else if(routineType == ScriptRoutine::Type::Test)
+            else if(routineType == ScriptRoutine::Test)
             {
                 type = "Test";
 
@@ -865,16 +869,16 @@ ScriptPackage::Error ScriptPackage::write(std::string path)
            std::string type = (*it)->getType();
            std::string name = (*it)->getName();
 
-           if(name == "DISABLED_ROUTINE" || name == "AUTONOMOUS_ROUTINE" || name == "OPERATORCONTROL_ROUTINE" || name == "TEST_ROUTINE")
+           if(projectConfigStr != "" && (name == "DISABLED_ROUTINE" || name == "AUTONOMOUS_ROUTINE" || name == "OPERATORCONTROL_ROUTINE" || name == "TEST_ROUTINE"))
            {
                projectConfigStr += definition;
 
            }
-           else if(type == "Joystick" || type == "Servo" || type == "Relay"
+           else if(robotConfigStr != "" && (type == "Joystick" || type == "Servo" || type == "Relay"
                    || type == "Solenoid" || type == "DoubleSolenoid"
                    || type == "Victor" || type == "Jaguar" || type == "Talon"
                    || type == "Counter" || type == "Encoder" || type == "Timer"
-                   || type == "RobotDrive")
+                   || type == "RobotDrive"))
            {
                robotConfigStr += definition;
 
@@ -896,6 +900,12 @@ ScriptPackage::Error ScriptPackage::write(std::string path)
     std::list<PackageSection*>::iterator it;
     for(it = m_sections.begin(); it != m_sections.end(); it++)
     {
+        if(*(*it)->getNameSize() <= 0 || *(*it)->getFileSize() <= 0)
+        {
+            continue;
+
+        }
+
         //name
         file.write((char*)(*it)->getNameSize(), sizeof(int));
         file.write((*it)->getName().c_str(), *(*it)->getNameSize());
@@ -905,6 +915,8 @@ ScriptPackage::Error ScriptPackage::write(std::string path)
         file.write((*it)->getFile().c_str(), *(*it)->getFileSize());
 
     }
+
+    file.close();
 
     return getLastError();
 
@@ -985,7 +997,7 @@ void ScriptPackage::remSection(std::string name)
             delete (*it);
             m_sections.erase(it);
             release();
-            setError(ScriptPackage::Error::NotBuilt, "A Section was removed you need to rebuild");
+            setError(ScriptPackage::NotBuilt, "A Section was removed you need to rebuild");
             return;
 
         }
@@ -1032,7 +1044,7 @@ void ScriptPackage::remRoutine(std::string name)
             delete (*it);
             m_routines.erase(it);
             release();
-            setError(ScriptPackage::Error::NotBuilt, "A Routine was removed you need to rebuild");
+            setError(ScriptPackage::NotBuilt, "A Routine was removed you need to rebuild");
             return;
 
         }
@@ -1108,7 +1120,7 @@ void ScriptPackage::remProperty(std::string name)
             delete (*it);
             m_properties.erase(it);
             release();
-            setError(ScriptPackage::Error::NotBuilt, "A property was removed you need to rebuild");
+            setError(ScriptPackage::NotBuilt, "A property was removed you need to rebuild");
             return;
 
         }

@@ -172,7 +172,7 @@ Config::ParseError Config::parse(std::string file)
             if(value_str == "")
                 return BadValue;
 
-            if(getSectionData(key)->section != "")
+            if(getSectionData(key) != NULL)
                 return VarNameCollision;
 
             sections.push_back(data);
@@ -182,6 +182,8 @@ Config::ParseError Config::parse(std::string file)
         }
 
     }
+
+    std::cout << "finished parsing .. about to build\n";
 
     build();
     return NoError;

@@ -1,5 +1,6 @@
 #include "ScriptRobot.h"
 #include "scriptwpilib.h"
+#include "add_on/scriptarray/scriptarray.h"
 #include "add_on/scriptstdstring/scriptstdstring.h"
 #include "add_on/scriptdictionary/scriptdictionary.h"
 #include "add_on/scriptmath/scriptmath.h"
@@ -12,6 +13,7 @@
 ScriptRobot::ScriptRobot()
 {
     m_engine = asCreateScriptEngine(ANGELSCRIPT_VERSION);
+    RegisterScriptArray(m_engine, true);
     RegisterStdString(m_engine);
     RegisterScriptDictionary_Generic(m_engine);
     RegisterScriptMath(m_engine);
