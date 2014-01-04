@@ -37,6 +37,8 @@ public:
     void setTestRoutine(std::string name);
     std::string getTestRoutine();
 
+    static void print(std::string msg);
+
 protected:
     bool reloading; ///< reloading
     asIScriptEngine* m_engine; ///< Angelscript engine.
@@ -52,6 +54,8 @@ protected:
 
 private:
     ~ScriptRobot();
+
+    static void messageCallback(const asSMessageInfo* msg);
 
     void StartCompetition();
     void executeRoutine();

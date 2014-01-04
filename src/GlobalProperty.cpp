@@ -29,7 +29,7 @@ void GlobalProperty::setup(std::string definition, std::string type, std::string
 
 bool GlobalProperty::registerProperty(asIScriptEngine* engine)
 {
-    if(engine == NULL || m_definition == "" || m_type == "" || m_name == "" || m_ptr == "")
+    if(engine == NULL || m_definition == "" || m_type == "" || m_name == "" || m_ptr == NULL)
     {
         return false;
 

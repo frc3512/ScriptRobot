@@ -21,6 +21,8 @@ ScriptRobot::ScriptRobot()
     registerWPILib(m_engine);
     registerConvertString(m_engine);
     registerConvertUnits(m_engine);
+    m_engine->SetMessageCallback(asFUNCTION(ScriptRobot::messageCallback), 0, asCALL_CDECL);
+    m_engine->RegisterGlobalFunction("void print(string)", asFUNCTION(ScriptRobot::print), asCALL_CDECL);
 
     setup();
 
@@ -371,6 +373,39 @@ void ScriptRobot::executeRoutine()
         }
 
     }
+
+}
+
+void ScriptRobot::print(std::string msg)
+{
+    std::cout << msg << "\n";
+
+}
+
+void ScriptRobot::messageCallback(const asSMessageInfo* msg)
+{
+    std::string s;
+    if(msg->type == asMSGTYPE_WARNING)
+    {
+        s = "WARN ";
+
+    }
+    else if(msg->type == asMSGTYPE_INFORMATION)
+    {
+        s = "INFO ";
+
+    }
+
+    s = s
+        + "an error occurred on line: "
+        + toString(msg->row)
+        + "\n\tof file: "
+        + std::string(msg->section)
+        + " . . . \n\t"
+        + std::string(msg->message)
+        + "\n";
+
+    print(s);
 
 }
 

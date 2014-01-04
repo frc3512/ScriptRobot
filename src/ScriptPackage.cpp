@@ -241,7 +241,8 @@ ScriptPackage::Error ScriptPackage::load(std::string path)
             std::string name = robotConfig.sections[i].key;
             std::string type = robotConfig.sections[i].identifier;
             std::vector<std::string> params = robotConfig.sections[i].params;
-            std::string definition = robotConfig.sections[i].line + ";";
+            std::string definition = robotConfig.sections[i].section + ";";
+            std::cout << "definition " << definition << "\n";
 
             //TODO: return an error if we can't create a device with the given params
             //TODO: find a better way to do all this nonsense it's all the same
@@ -627,6 +628,7 @@ void ScriptPackage::unload()
 
 ScriptPackage::Error ScriptPackage::build(asIScriptEngine* engine)
 {
+    std::cout << "building\n";
     if(isValid())
     {
         return getLastError();
@@ -649,6 +651,7 @@ ScriptPackage::Error ScriptPackage::build(asIScriptEngine* engine)
 
     m_engine = engine;
 
+    std::cout << "registering global properties\n";
     {//Register all global properties
         std::list<GlobalProperty*>::iterator it;
         for(it = m_properties.begin(); it != m_properties.end(); it++)
@@ -665,6 +668,7 @@ ScriptPackage::Error ScriptPackage::build(asIScriptEngine* engine)
 
     }
 
+    std::cout << "building scripts\n";
     {//Build all script sections
         std::list<PackageSection*>::iterator it;
         for(it = m_sections.begin(); it != m_sections.end(); it++)
@@ -702,6 +706,7 @@ ScriptPackage::Error ScriptPackage::build(asIScriptEngine* engine)
 
     }
 
+    std::cout << "loading hooks\n";
     {//Fetch all function pointers for routines.
         m_initRoutine->loadHooksFromEngine(m_engine);
 
