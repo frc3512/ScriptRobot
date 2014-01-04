@@ -10,7 +10,15 @@
 class GenericHID
 {
 public:
+    GenericHID(){}
     GenericHID(int){}
+
+};
+
+class ScriptRobot
+{
+public:
+    ScriptRobot(){}
 
 };
 
@@ -116,6 +124,7 @@ public:
 class Counter
 {
 public:
+    Counter(){}
     Counter(int){}
 
     void Start(){}
@@ -146,6 +155,18 @@ public:
 
 };
 
+class AnalogChannel
+{
+public:
+    AnalogChannel(int){}
+
+    int GetValue(){return 0;}
+    int GetAverageValue(){return 0;}
+    float GetVoltage(){return 0;}
+    float GetAverageVoltage(){return 0;}
+
+};
+
 class Timer
 {
 public:
@@ -155,6 +176,20 @@ public:
     void Start(){}
     void Stop(){}
     bool HasPeriodPassed(float){return false;}
+
+};
+
+class DriverStationLCD
+{
+public:
+    DriverStationLCD(){}
+    static DriverStationLCD* GetInstance()
+    {
+        return new DriverStationLCD;
+    }
+
+    void UpdateLCD(){}
+    void PrintfLine(int, const char *writeFmt, ...){}
 
 };
 

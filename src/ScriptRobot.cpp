@@ -27,7 +27,7 @@ ScriptRobot::ScriptRobot()
     setup();
 
     m_ctx = m_engine->CreateContext();
-    load("FRCUserProgram.scpkg");
+    load("FRC_UserProgram.scpkg");
 
 }
 
@@ -254,7 +254,7 @@ void ScriptRobot::StartCompetition()
         {
             if(!(m_engine == NULL || m_ctx == NULL || m_package == NULL))
             {
-                m_routine = m_package->getRoutine(m_disabledRoutine);
+                m_routine = m_package->getRoutine(m_autonomousRoutine);
 
             }
             else
@@ -284,7 +284,7 @@ void ScriptRobot::StartCompetition()
         {
             if(!(m_engine == NULL || m_ctx == NULL || m_package == NULL))
             {
-                m_routine = m_package->getRoutine(m_disabledRoutine);
+                m_routine = m_package->getRoutine(m_operatorControlRoutine);
 
             }
             else
@@ -316,7 +316,7 @@ void ScriptRobot::StartCompetition()
         {
             if(!(m_engine == NULL || m_ctx == NULL || m_package == NULL))
             {
-                m_routine = m_package->getRoutine(m_disabledRoutine);
+                m_routine = m_package->getRoutine(m_testRoutine);
 
             }
             else

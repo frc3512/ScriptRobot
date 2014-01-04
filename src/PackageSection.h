@@ -61,12 +61,12 @@ public:
     /**Returns the number of bytes in the name.
      * @return the number of bytes in the name.
      */
-    int* getNameSize();
+    int getNameSize();
 
     /**Returns the number of bytes in the file.
      * @return the number of bytes in the file.
      */
-    int* getFileSize();
+    int getFileSize();
 
 private:
     int m_nameSize; ///< The number of bytes in the name

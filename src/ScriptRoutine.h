@@ -152,7 +152,7 @@ public:
 
 private:
     std::string m_name; ///< The name of the ScriptRoutine.
-    ScriptRoutine::Type m_type; ///< The ScriptRoutine type.
+    Type m_type; ///< The ScriptRoutine type.
     std::vector<std::string> m_scripts; ///< The scripts utilized in this ScriptRoutine.
     std::list<asIScriptFunction*> m_hooks; ///< The angelscript function pointers used by this ScriptRoutine.
 

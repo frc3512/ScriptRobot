@@ -9,6 +9,12 @@
 #include <WPILib.h>
 #endif
 
+#ifdef _WIN32
+#include <winsock2.h>
+#elif UNIX
+#include <netinet/in.h>
+#endif
+
 ScriptPackage::ScriptPackage()
 {
     m_engine = NULL;
@@ -77,8 +83,9 @@ ScriptPackage::Error ScriptPackage::load(std::string path)
         std::string nameStr;
         std::string fileStr;
 
-        int nameSize = 0;
-        file.read((char*)&nameSize, sizeof(int));
+        unsigned int nameSize = 0;
+        file.read((char*)&nameSize, sizeof(unsigned int));
+        nameSize = ntohl(nameSize);
 
         if(nameSize != 0)
         {
@@ -86,11 +93,11 @@ ScriptPackage::Error ScriptPackage::load(std::string path)
             file.read(buffer, nameSize);
             nameStr = std::string(buffer);
 
-
         }
 
-        int fileSize = 0;
-        file.read((char*)&fileSize, sizeof(int));
+        unsigned int fileSize = 0;
+        file.read((char*)&fileSize, sizeof(unsigned int));
+        fileSize = ntohl(fileSize);
 
         if(fileSize != 0)
         {
@@ -235,6 +242,7 @@ ScriptPackage::Error ScriptPackage::load(std::string path)
 
     }
 
+    addProperty("DriverStationLCD driverStation = 0;", "DriverStationLCD", "driverStation", DriverStationLCD::GetInstance());
     {//Prepare all robot devices
         for(unsigned int i = 0; i < robotConfig.sections.size(); i++)
         {
@@ -242,7 +250,6 @@ ScriptPackage::Error ScriptPackage::load(std::string path)
             std::string type = robotConfig.sections[i].identifier;
             std::vector<std::string> params = robotConfig.sections[i].params;
             std::string definition = robotConfig.sections[i].section + ";";
-            std::cout << "definition " << definition << "\n";
 
             //TODO: return an error if we can't create a device with the given params
             //TODO: find a better way to do all this nonsense it's all the same
@@ -267,7 +274,8 @@ ScriptPackage::Error ScriptPackage::load(std::string path)
 
                 }
 
-                int port = toInt(params[0]);
+                unsigned int port = toUInt(params[0]);
+                std::cout << "Servo* temp = new Servo(" << port << ")\n";
                 Servo* temp = new Servo(port);
                 addProperty(definition, type, name, temp);
 
@@ -381,6 +389,21 @@ ScriptPackage::Error ScriptPackage::load(std::string path)
                 int bChan = toInt(params[1]);
 
                 Encoder* temp = new Encoder(aChan, bChan);
+                addProperty(definition, type, name, temp);
+
+            }
+            else if(type == "AnalogChannel")
+            {
+                if(params.size() != 1)
+                {
+                    continue;
+
+                }
+
+                unsigned int port = toUInt(params[0]);
+
+                AnalogChannel* temp = new AnalogChannel(port);
+                std::cout << "analog chan: " << port << "\n";
                 addProperty(definition, type, name, temp);
 
             }
@@ -598,6 +621,11 @@ void ScriptPackage::unload()
             delete (Encoder*)ptr;
 
         }
+        else if(type == "AnalogChannel")
+        {
+            delete (AnalogChannel*)ptr;
+
+        }
         else if(type == "Timer")
         {
             delete (Timer*)ptr;
@@ -713,6 +741,7 @@ ScriptPackage::Error ScriptPackage::build(asIScriptEngine* engine)
         std::list<ScriptRoutine*>::iterator it;
         for(it = m_routines.begin(); it != m_routines.end(); it++)
         {
+            std::cout << "loading hooks for: " << (*it)->getName() << "\n";
             (*it)->loadHooksFromEngine(m_engine);
 
         }
@@ -902,22 +931,25 @@ ScriptPackage::Error ScriptPackage::write(std::string path)
     addSection("robot.cfg", robotConfigStr);
     addSection("global.cfg", globalConfigStr);
 
+    //TODO: marker
     std::list<PackageSection*>::iterator it;
     for(it = m_sections.begin(); it != m_sections.end(); it++)
     {
-        if(*(*it)->getNameSize() <= 0 || *(*it)->getFileSize() <= 0)
+        if((*it)->getNameSize() == 0 || (*it)->getFileSize() == 0)
         {
             continue;
 
         }
 
         //name
-        file.write((char*)(*it)->getNameSize(), sizeof(int));
-        file.write((*it)->getName().c_str(), *(*it)->getNameSize());
+        unsigned int swappedNameSize = htonl((*it)->getNameSize());
+        file.write((char*)&swappedNameSize, sizeof(unsigned int));
+        file.write((*it)->getName().c_str(), (*it)->getNameSize());
 
         //file
-        file.write((char*)(*it)->getFileSize(), sizeof(int));
-        file.write((*it)->getFile().c_str(), *(*it)->getFileSize());
+        unsigned int swappedFileSize = htonl((*it)->getFileSize());
+        file.write((char*)&swappedFileSize, sizeof(unsigned int));
+        file.write((*it)->getFile().c_str(), (*it)->getFileSize());
 
     }
 

@@ -63,14 +63,14 @@ std::string PackageSection::getFile()
 
 }
 
-int* PackageSection::getNameSize()
+int PackageSection::getNameSize()
 {
-    return &m_nameSize;
+    return m_nameSize;
 
 }
 
-int* PackageSection::getFileSize()
+int PackageSection::getFileSize()
 {
-    return &m_fileSize;
+    return m_fileSize;
 
 }

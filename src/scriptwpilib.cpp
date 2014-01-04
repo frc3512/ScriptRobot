@@ -4,6 +4,7 @@
 #ifdef FAKEWPILIB
 #include "FakeWPILib/FakeWPILib.h"
 #else
+#include "ScriptRobot.h"
 #include <WPILib.h>
 #endif
 
@@ -13,6 +14,7 @@ void registerWPILib(asIScriptEngine* engine)
     registerControllers(engine);
     registerSensors(engine);
     registerTimer(engine);
+    registerDriverStation(engine);
     registerRobotDrive(engine);
 
     engine->RegisterObjectType("Robot", sizeof(ScriptRobot), asOBJ_REF | asOBJ_NOCOUNT);
@@ -144,18 +146,34 @@ void registerSensors(asIScriptEngine* engine)
     assert(engine->RegisterObjectMethod("Encoder", "void setReverseDirection(bool)", asMETHOD(Encoder, SetReverseDirection), asCALL_THISCALL) >= 0);
     assert(engine->RegisterObjectMethod("Encoder", "float PIDGet()", asMETHOD(Encoder, PIDGet), asCALL_THISCALL) >= 0);
 
+    //AnalogChannel
+    assert(engine->RegisterObjectType("AnalogChannel", sizeof(AnalogChannel), asOBJ_REF | asOBJ_NOCOUNT) >= 0);
+    assert(engine->RegisterObjectMethod("AnalogChannel", "int getValue()", asMETHOD(AnalogChannel, GetValue), asCALL_THISCALL) >= 0);
+    assert(engine->RegisterObjectMethod("AnalogChannel", "int getAverageValue()", asMETHOD(AnalogChannel, GetAverageValue), asCALL_THISCALL) >= 0);
+    assert(engine->RegisterObjectMethod("AnalogChannel", "float getVoltage()", asMETHOD(AnalogChannel, GetVoltage), asCALL_THISCALL) >= 0);
+    assert(engine->RegisterObjectMethod("AnalogChannel", "float getAverageVoltage()", asMETHOD(AnalogChannel, GetAverageVoltage), asCALL_THISCALL) >= 0);
+
 }
 
 void registerTimer(asIScriptEngine* engine)
 {
     ///// Timer /////
-    assert(engine->RegisterObjectType("Timer", sizeof(Timer), asOBJ_VALUE | asOBJ_POD) >= 0);
+    assert(engine->RegisterObjectType("Timer", sizeof(Timer), asOBJ_REF | asOBJ_NOCOUNT) >= 0);
 
     assert(engine->RegisterObjectMethod("Timer", "float get()", asMETHOD(Timer, Get), asCALL_THISCALL) >= 0);
     assert(engine->RegisterObjectMethod("Timer", "void reset()", asMETHOD(Timer, Reset), asCALL_THISCALL) >= 0);
     assert(engine->RegisterObjectMethod("Timer", "void start()", asMETHOD(Timer, Start), asCALL_THISCALL) >= 0);
     assert(engine->RegisterObjectMethod("Timer", "void stop()", asMETHOD(Timer, Stop), asCALL_THISCALL) >= 0);
     assert(engine->RegisterObjectMethod("Timer", "bool hasTimePassed(float)", asMETHOD(Timer, HasPeriodPassed), asCALL_THISCALL) >= 0);
+
+}
+
+void registerDriverStation(asIScriptEngine* engine)
+{
+    assert(engine->RegisterObjectType("DriverStationLCD", sizeof(DriverStationLCD), asOBJ_VALUE | asOBJ_POD) >= 0);
+
+    assert(engine->RegisterObjectMethod("DriverStationLCD", "void print(int line, string format = \"%s\", string = \"printout\")", asMETHOD(DriverStationLCD, PrintfLine), asCALL_THISCALL) >= 0);
+    assert(engine->RegisterObjectMethod("DriverStationLCD", "float update()", asMETHOD(DriverStationLCD, UpdateLCD), asCALL_THISCALL) >= 0);
 
 }
 

@@ -32,6 +32,7 @@ void registerJoystick(asIScriptEngine* engine);
 void registerControllers(asIScriptEngine* engine);
 void registerSensors(asIScriptEngine* engine);
 void registerTimer(asIScriptEngine* engine);
+void registerDriverStation(asIScriptEngine* engine);
 void registerRobotDrive(asIScriptEngine* engine);
 
 #endif /* SCRIPTWPILIB_H_ */
