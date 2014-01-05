@@ -63,6 +63,7 @@ public:
 
     void SetAngle(float){}
     float GetAngle(){return 0;}
+    void SetRaw(unsigned int){};
 
 };
 
@@ -190,6 +191,8 @@ public:
 
     void UpdateLCD(){}
     void PrintfLine(int, const char *writeFmt, ...){}
+    void Clear(){}
+    void Printf(int, int, const char *writeFmt, ...){}
 
 };
 

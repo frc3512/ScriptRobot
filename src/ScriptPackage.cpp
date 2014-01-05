@@ -15,6 +15,8 @@
 #include <netinet/in.h>
 #endif
 
+#include "scriptwpilib.h"
+
 ScriptPackage::ScriptPackage()
 {
     m_engine = NULL;
@@ -242,7 +244,7 @@ ScriptPackage::Error ScriptPackage::load(std::string path)
 
     }
 
-    addProperty("DriverStationLCD driverStation = 0;", "DriverStationLCD", "driverStation", DriverStationLCD::GetInstance());
+    addProperty("DriverStationLCD driverStation = 0;", "DriverStation", "driverStation", new asDriverStation);
     {//Prepare all robot devices
         for(unsigned int i = 0; i < robotConfig.sections.size(); i++)
         {

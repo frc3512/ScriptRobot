@@ -12,6 +12,7 @@
 
 ScriptRobot::ScriptRobot()
 {
+    m_watchdog.SetEnabled(false);
     m_engine = asCreateScriptEngine(ANGELSCRIPT_VERSION);
     RegisterScriptArray(m_engine, true);
     RegisterStdString(m_engine);
@@ -25,6 +26,9 @@ ScriptRobot::ScriptRobot()
     m_engine->RegisterGlobalFunction("void print(string)", asFUNCTION(ScriptRobot::print), asCALL_CDECL);
 
     setup();
+
+    m_package = NULL;
+    m_routine = NULL;
 
     m_ctx = m_engine->CreateContext();
     load("FRC_UserProgram.scpkg");
@@ -98,8 +102,12 @@ void ScriptRobot::load(std::string path)
 
     }
 
-    m_package->release();
-    delete m_package;
+    if(m_package != NULL)
+    {
+        delete m_package;
+        m_package = NULL;
+
+    }
     m_package = temp;
 
     std::cout << m_package->getLastErrorMessage() << "\n";
@@ -200,12 +208,13 @@ std::string ScriptRobot::getTestRoutine()
 void ScriptRobot::StartCompetition()
 {
     LiveWindow* lw = LiveWindow::GetInstance();
-    lw->SetEnabled(false);
 
     SmartDashboard::init();
     NetworkTable::GetTable("LiveWindow")->GetSubTable("~STATUS~")->PutBoolean("LW Enabled", false);
 
     onInit();
+
+    lw->SetEnabled(false);
 
     while(true)
     {
@@ -220,7 +229,7 @@ void ScriptRobot::StartCompetition()
             }
 
         }
-        if(IsDisabled())
+        else if(IsDisabled())
         {
             if(!(m_engine == NULL || m_ctx == NULL || m_package == NULL))
             {

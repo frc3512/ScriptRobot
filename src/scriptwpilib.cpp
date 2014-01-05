@@ -8,6 +8,33 @@
 #include <WPILib.h>
 #endif
 
+asDriverStation::asDriverStation()
+{
+    lcd = DriverStationLCD::GetInstance();
+
+}
+
+//LCD
+void asDriverStation::print(int line, int column, std::string msg)
+{
+    lcd->Printf(line, column, "%s", msg.c_str());
+    lcd->UpdateLCD();
+
+}
+
+void asDriverStation::print(int line, std::string msg)
+{
+    lcd->PrintfLine(line, "%s", msg.c_str());
+    lcd->UpdateLCD();
+
+}
+
+void asDriverStation::clear()
+{
+    lcd->Clear();
+
+}
+
 void registerWPILib(asIScriptEngine* engine)
 {
     registerJoystick(engine);
@@ -170,10 +197,10 @@ void registerTimer(asIScriptEngine* engine)
 
 void registerDriverStation(asIScriptEngine* engine)
 {
-    assert(engine->RegisterObjectType("DriverStationLCD", sizeof(DriverStationLCD), asOBJ_VALUE | asOBJ_POD) >= 0);
-
-    assert(engine->RegisterObjectMethod("DriverStationLCD", "void print(int line, string format = \"%s\", string = \"printout\")", asMETHOD(DriverStationLCD, PrintfLine), asCALL_THISCALL) >= 0);
-    assert(engine->RegisterObjectMethod("DriverStationLCD", "float update()", asMETHOD(DriverStationLCD, UpdateLCD), asCALL_THISCALL) >= 0);
+    assert(engine->RegisterObjectType("DriverStation", sizeof(asDriverStation), asOBJ_REF | asOBJ_NOCOUNT) >= 0);
+    assert(engine->RegisterObjectMethod("DriverStation", "void print(int, int, string)", asMETHODPR(asDriverStation, print, (int, int, std::string), void), asCALL_THISCALL) >= 0);
+    assert(engine->RegisterObjectMethod("DriverStation", "void print(int, string)", asMETHODPR(asDriverStation, print, (int, std::string), void), asCALL_THISCALL) >= 0);
+    assert(engine->RegisterObjectMethod("DriverStation", "void clear()", asMETHOD(asDriverStation, clear), asCALL_THISCALL) >= 0);
 
 }
 
