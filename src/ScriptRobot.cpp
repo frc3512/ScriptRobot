@@ -13,6 +13,7 @@
 ScriptRobot::ScriptRobot()
 {
     m_watchdog.SetEnabled(false);
+
     m_engine = asCreateScriptEngine(ANGELSCRIPT_VERSION);
     RegisterScriptArray(m_engine, true);
     RegisterStdString(m_engine);

@@ -290,7 +290,7 @@ ScriptPackage::Error ScriptPackage::load(std::string path)
 
                 }
 
-                int port = toInt(params[0]);
+                unsigned int port = toUInt(params[0]);
                 Relay* temp = new Relay(port);
                 addProperty(definition, type, name, temp);
 
@@ -303,7 +303,7 @@ ScriptPackage::Error ScriptPackage::load(std::string path)
 
                 }
 
-                int port = toInt(params[0]);
+                unsigned int port = toUInt(params[0]);
                 Solenoid* temp =  new Solenoid(port);
                 addProperty(definition, type, name, temp);
 
@@ -316,8 +316,8 @@ ScriptPackage::Error ScriptPackage::load(std::string path)
 
                 }
 
-                int forwardPort = toInt(params[0]);
-                int reversePort = toInt(params[1]);
+                unsigned int forwardPort = toUInt(params[0]);
+                unsigned int reversePort = toUInt(params[1]);
 
                 DoubleSolenoid* temp = new DoubleSolenoid(forwardPort, reversePort);
                 addProperty(definition, type, name, temp);
@@ -331,7 +331,7 @@ ScriptPackage::Error ScriptPackage::load(std::string path)
 
                 }
 
-                int port = toInt(params[0]);
+                unsigned int port = toUInt(params[0]);
 
                 Victor* temp = new Victor(port);
                 addProperty(definition, type, name, temp);
@@ -345,7 +345,7 @@ ScriptPackage::Error ScriptPackage::load(std::string path)
 
                 }
 
-                int port = toInt(params[0]);
+                unsigned int port = toUInt(params[0]);
 
                 Jaguar* temp = new Jaguar(port);
                 addProperty(definition, type, name, temp);
@@ -359,7 +359,7 @@ ScriptPackage::Error ScriptPackage::load(std::string path)
 
                 }
 
-                int port = toInt(params[0]);
+                unsigned int port = toUInt(params[0]);
 
                 Talon* temp = new Talon(port);
                 addProperty(definition, type, name, temp);
@@ -373,7 +373,7 @@ ScriptPackage::Error ScriptPackage::load(std::string path)
 
                 }
 
-                int port = toInt(params[0]);
+                unsigned int port = toUInt(params[0]);
 
                 Counter* temp = new Counter(port);
                 addProperty(definition, type, name, temp);
@@ -387,8 +387,8 @@ ScriptPackage::Error ScriptPackage::load(std::string path)
 
                 }
 
-                int aChan = toInt(params[0]);
-                int bChan = toInt(params[1]);
+                unsigned int aChan = toUInt(params[0]);
+                unsigned int bChan = toUInt(params[1]);
 
                 Encoder* temp = new Encoder(aChan, bChan);
                 addProperty(definition, type, name, temp);
@@ -405,7 +405,20 @@ ScriptPackage::Error ScriptPackage::load(std::string path)
                 unsigned int port = toUInt(params[0]);
 
                 AnalogChannel* temp = new AnalogChannel(port);
-                std::cout << "analog chan: " << port << "\n";
+                addProperty(definition, type, name, temp);
+
+            }
+            else if(type == "DigitalInput")
+            {
+                if(params.size() != 1)
+                {
+                    continue;
+
+                }
+
+                unsigned int port = toUInt(params[0]);
+
+                DigitalInput* temp = new DigitalInput(port);
                 addProperty(definition, type, name, temp);
 
             }
@@ -424,13 +437,28 @@ ScriptPackage::Error ScriptPackage::load(std::string path)
                 addProperty(definition, type, name, temp);
 
             }
+            else if(type == "Compressor")
+            {
+                if(params.size() != 2)
+                {
+                    continue;
+
+                }
+
+                unsigned int chanA = toUInt(params[0]);
+                unsigned int chanB = toUInt(params[1]);
+
+                Compressor* temp = new Compressor(chanA, chanB);
+                addProperty(definition, type, name, temp);
+
+            }
             else if(type == "RobotDrive")
             {
                 RobotDrive* temp;
                 if(params.size() == 2)
                 {
-                    int leftMotorChan = toInt(params[0]);
-                    int rightMotorChan = toInt(params[1]);
+                    unsigned int leftMotorChan = toUInt(params[0]);
+                    unsigned int rightMotorChan = toUInt(params[1]);
 
                     temp = new RobotDrive(leftMotorChan, rightMotorChan);
                     addProperty(definition, type, name, temp);
@@ -438,10 +466,10 @@ ScriptPackage::Error ScriptPackage::load(std::string path)
                 }
                 else if(params.size() == 4)
                 {
-                    int frontLMotorChan = toInt(params[0]);
-                    int rearLMotorChan = toInt(params[1]);
-                    int frontRMotorChan = toInt(params[2]);
-                    int rearRMotorChan = toInt(params[3]);
+                    unsigned int frontLMotorChan = toUInt(params[0]);
+                    unsigned int rearLMotorChan = toUInt(params[1]);
+                    unsigned int frontRMotorChan = toUInt(params[2]);
+                    unsigned int rearRMotorChan = toUInt(params[3]);
 
                     temp = new RobotDrive(frontLMotorChan, rearLMotorChan,
                                 frontRMotorChan, rearRMotorChan);
@@ -628,9 +656,19 @@ void ScriptPackage::unload()
             delete (AnalogChannel*)ptr;
 
         }
+        else if(type == "DigitalInput")
+        {
+            delete (DigitalInput*)ptr;
+
+        }
         else if(type == "Timer")
         {
             delete (Timer*)ptr;
+
+        }
+        else if(type == "Compressor")
+        {
+            delete (Compressor*)ptr;
 
         }
         else if(type == "RobotDrive")

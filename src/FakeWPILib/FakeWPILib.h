@@ -196,6 +196,59 @@ public:
 
 };
 
+class DriverStation
+{
+public:
+    DriverStation(){}
+    static DriverStation* GetInstance()
+    {
+        return new DriverStation;
+
+    }
+
+    float GetStickAxis(unsigned int stick, unsigned int axis){return 0;}
+    int GetStickButtons(unsigned int stick){return 0;}
+
+    float GetAnalogIn(unsigned int chan){return 0;}
+    bool GetDigitalIn(unsigned int chan){return false;}
+    void SetDigitalOut(unsigned int chan, bool value){}
+    bool GetDigitalOut(unsigned int chan){return false;}
+
+    bool IsEnabled(){return false;}
+    bool IsDisabled(){return false;}
+    bool IsAutonomous(){return false;}
+    bool IsTest(){return false;}
+    bool IsNewControlData(){return false;}
+    bool IsFMSAttached(){return false;}
+
+    int GetAlliance(){return 0;}
+    unsigned int GetLocation(){return 0;}
+    float GetMatchTime(){return 0;}
+    float GetBatteryVoltage(){return 0;}
+    unsigned int GetTeamNumber(){return 0;}
+
+};
+
+class DigitalInput
+{
+public:
+    DigitalInput(int){}
+    unsigned int Get(){return 0;}
+    void SetUpSourceEdge(bool, bool){}
+
+};
+
+class Compressor
+{
+public:
+    Compressor(unsigned int, unsigned int){}
+    void Start(){}
+    void Stop(){}
+    bool Enabled(){return false;}
+    unsigned int GetPressureSwitchValue(){return 0;}
+
+};
+
 class RobotDrive
 {
 public:

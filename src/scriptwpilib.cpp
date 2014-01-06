@@ -10,28 +10,131 @@
 
 asDriverStation::asDriverStation()
 {
-    lcd = DriverStationLCD::GetInstance();
+    m_lcd = DriverStationLCD::GetInstance();
+    m_ds = DriverStation::GetInstance();
 
 }
 
 //LCD
 void asDriverStation::print(int line, int column, std::string msg)
 {
-    lcd->Printf(line, column, "%s", msg.c_str());
-    lcd->UpdateLCD();
+    m_lcd->Printf(line, column, "%s", msg.c_str());
+    m_lcd->UpdateLCD();
 
 }
 
 void asDriverStation::print(int line, std::string msg)
 {
-    lcd->PrintfLine(line, "%s", msg.c_str());
-    lcd->UpdateLCD();
+    m_lcd->PrintfLine(line, "%s", msg.c_str());
+    m_lcd->UpdateLCD();
 
 }
 
 void asDriverStation::clear()
 {
-    lcd->Clear();
+    m_lcd->Clear();
+
+}
+
+float asDriverStation::getStickAxis(unsigned int stick, unsigned int axis)
+{
+    return m_ds->GetStickAxis(stick, axis);
+
+}
+
+int asDriverStation::getStickButtons(unsigned int stick)
+{
+    return m_ds->GetStickButtons(stick);
+
+}
+
+float asDriverStation::getAnalogIn(unsigned int chan)
+{
+    return m_ds->GetAnalogIn(chan);
+
+}
+
+bool asDriverStation::getDigitalIn(unsigned int chan)
+{
+    return m_ds->GetDigitalIn(chan);
+
+}
+
+void asDriverStation::setDigitalOut(unsigned int chan, bool value)
+{
+    m_ds->SetDigitalOut(chan, value);
+
+}
+
+bool asDriverStation::getDigitalOut(unsigned int chan)
+{
+    return m_ds->GetDigitalOut(chan);
+
+}
+
+bool asDriverStation::isEnabled()
+{
+    return m_ds->IsEnabled();
+
+}
+
+bool asDriverStation::isDisabled()
+{
+    return m_ds->IsDisabled();
+
+}
+
+bool asDriverStation::isAutonomous()
+{
+    return m_ds->IsAutonomous();
+
+}
+
+bool asDriverStation::isTest()
+{
+    return m_ds->IsTest();
+
+}
+
+bool asDriverStation::isNewControlData()
+{
+    return m_ds->IsNewControlData();
+
+}
+
+bool asDriverStation::isFMSAttached()
+{
+    return m_ds->IsFMSAttached();
+
+}
+
+int asDriverStation::getAlliance()
+{
+    return m_ds->GetAlliance();
+
+}
+
+unsigned int asDriverStation::getLocation()
+{
+    return m_ds->GetLocation();
+
+}
+
+float asDriverStation::getMatchTime()
+{
+    return m_ds->GetMatchTime();
+
+}
+
+float asDriverStation::getBatteryVoltage()
+{
+    return m_ds->GetBatteryVoltage();
+
+}
+
+unsigned int asDriverStation::getTeamNumber()
+{
+    return m_ds->GetTeamNumber();
 
 }
 
@@ -42,6 +145,7 @@ void registerWPILib(asIScriptEngine* engine)
     registerSensors(engine);
     registerTimer(engine);
     registerDriverStation(engine);
+    registerCompressor(engine);
     registerRobotDrive(engine);
 
     engine->RegisterObjectType("Robot", sizeof(ScriptRobot), asOBJ_REF | asOBJ_NOCOUNT);
@@ -175,32 +279,72 @@ void registerSensors(asIScriptEngine* engine)
 
     //AnalogChannel
     assert(engine->RegisterObjectType("AnalogChannel", sizeof(AnalogChannel), asOBJ_REF | asOBJ_NOCOUNT) >= 0);
+
     assert(engine->RegisterObjectMethod("AnalogChannel", "int getValue()", asMETHOD(AnalogChannel, GetValue), asCALL_THISCALL) >= 0);
     assert(engine->RegisterObjectMethod("AnalogChannel", "int getAverageValue()", asMETHOD(AnalogChannel, GetAverageValue), asCALL_THISCALL) >= 0);
     assert(engine->RegisterObjectMethod("AnalogChannel", "float getVoltage()", asMETHOD(AnalogChannel, GetVoltage), asCALL_THISCALL) >= 0);
     assert(engine->RegisterObjectMethod("AnalogChannel", "float getAverageVoltage()", asMETHOD(AnalogChannel, GetAverageVoltage), asCALL_THISCALL) >= 0);
 
+    //DigitalInput
+    assert(engine->RegisterObjectType("DigitalInput", sizeof(DigitalInput), asOBJ_REF | asOBJ_NOCOUNT) >= 0);
+
+    assert(engine->RegisterObjectMethod("DigitalInput", "uint get()", asMETHOD(DigitalInput, Get), asCALL_THISCALL) >= 0);
+    assert(engine->RegisterObjectMethod("DigitalInput", "void setupSourceEdge(bool, bool)", asMETHOD(DigitalInput, SetUpSourceEdge), asCALL_THISCALL) >= 0);
+
+
 }
 
-void registerTimer(asIScriptEngine* engine)
+void registerTimer(asIScriptEngine* engine) //TODO: fix / test this
 {
     ///// Timer /////
-    assert(engine->RegisterObjectType("Timer", sizeof(Timer), asOBJ_REF | asOBJ_NOCOUNT) >= 0);
+    /*assert(engine->RegisterObjectType("Timer", sizeof(Timer), asOBJ_REF | asOBJ_NOCOUNT) >= 0);
 
     assert(engine->RegisterObjectMethod("Timer", "float get()", asMETHOD(Timer, Get), asCALL_THISCALL) >= 0);
     assert(engine->RegisterObjectMethod("Timer", "void reset()", asMETHOD(Timer, Reset), asCALL_THISCALL) >= 0);
     assert(engine->RegisterObjectMethod("Timer", "void start()", asMETHOD(Timer, Start), asCALL_THISCALL) >= 0);
     assert(engine->RegisterObjectMethod("Timer", "void stop()", asMETHOD(Timer, Stop), asCALL_THISCALL) >= 0);
     assert(engine->RegisterObjectMethod("Timer", "bool hasTimePassed(float)", asMETHOD(Timer, HasPeriodPassed), asCALL_THISCALL) >= 0);
+*/
 
 }
 
 void registerDriverStation(asIScriptEngine* engine)
 {
     assert(engine->RegisterObjectType("DriverStation", sizeof(asDriverStation), asOBJ_REF | asOBJ_NOCOUNT) >= 0);
+
+    //lcd
     assert(engine->RegisterObjectMethod("DriverStation", "void print(int, int, string)", asMETHODPR(asDriverStation, print, (int, int, std::string), void), asCALL_THISCALL) >= 0);
     assert(engine->RegisterObjectMethod("DriverStation", "void print(int, string)", asMETHODPR(asDriverStation, print, (int, std::string), void), asCALL_THISCALL) >= 0);
     assert(engine->RegisterObjectMethod("DriverStation", "void clear()", asMETHOD(asDriverStation, clear), asCALL_THISCALL) >= 0);
+
+    //fms/driverstation
+    assert(engine->RegisterObjectMethod("DriverStation", "float getStickAxis(uint, uint)", asMETHOD(asDriverStation, getStickAxis), asCALL_THISCALL) >= 0);
+    assert(engine->RegisterObjectMethod("DriverStation", "int getStickButtons(uint)", asMETHOD(asDriverStation, getStickButtons), asCALL_THISCALL) >= 0);
+    assert(engine->RegisterObjectMethod("DriverStation", "float getAnalogIn(uint)", asMETHOD(asDriverStation, getAnalogIn), asCALL_THISCALL) >= 0);
+    assert(engine->RegisterObjectMethod("DriverStation", "bool getDigitalIn(uint)", asMETHOD(asDriverStation, getDigitalIn), asCALL_THISCALL) >= 0);
+    assert(engine->RegisterObjectMethod("DriverStation", "void setDigitalOut(uint, bool)", asMETHOD(asDriverStation, setDigitalOut), asCALL_THISCALL) >= 0);
+    assert(engine->RegisterObjectMethod("DriverStation", "bool getDigitalOut(uint)", asMETHOD(asDriverStation, getDigitalOut), asCALL_THISCALL) >= 0);
+    assert(engine->RegisterObjectMethod("DriverStation", "bool isEnabled()", asMETHOD(asDriverStation, isEnabled), asCALL_THISCALL) >= 0);
+    assert(engine->RegisterObjectMethod("DriverStation", "bool isDisabled()", asMETHOD(asDriverStation, isDisabled), asCALL_THISCALL) >= 0);
+    assert(engine->RegisterObjectMethod("DriverStation", "bool isTest()", asMETHOD(asDriverStation, isTest), asCALL_THISCALL) >= 0);
+    assert(engine->RegisterObjectMethod("DriverStation", "bool isNewControlData()", asMETHOD(asDriverStation, isNewControlData), asCALL_THISCALL) >= 0);
+    assert(engine->RegisterObjectMethod("DriverStation", "bool isFMSAttached()", asMETHOD(asDriverStation, isFMSAttached), asCALL_THISCALL) >= 0);
+    assert(engine->RegisterObjectMethod("DriverStation", "int getAlliance()", asMETHOD(asDriverStation, getAlliance), asCALL_THISCALL) >= 0);
+    assert(engine->RegisterObjectMethod("DriverStation", "uint getLocation()", asMETHOD(asDriverStation, getLocation), asCALL_THISCALL) >= 0);
+    assert(engine->RegisterObjectMethod("DriverStation", "float getMatchTime()", asMETHOD(asDriverStation, getMatchTime), asCALL_THISCALL) >= 0);
+    assert(engine->RegisterObjectMethod("DriverStation", "float getBatteryVoltage()", asMETHOD(asDriverStation, getBatteryVoltage), asCALL_THISCALL) >= 0);
+    assert(engine->RegisterObjectMethod("DriverStation", "uint getTeamNumber()", asMETHOD(asDriverStation, getTeamNumber), asCALL_THISCALL) >= 0);
+
+}
+
+void registerCompressor(asIScriptEngine* engine)
+{
+    assert(engine->RegisterObjectType("Compressor", sizeof(Compressor), asOBJ_REF | asOBJ_NOCOUNT) >= 0);
+
+    assert(engine->RegisterObjectMethod("Compressor", "void start()", asMETHOD(Compressor, Start), asCALL_THISCALL) >= 0);
+    assert(engine->RegisterObjectMethod("Compressor", "void stop()", asMETHOD(Compressor, Stop), asCALL_THISCALL) >= 0);
+    assert(engine->RegisterObjectMethod("Compressor", "bool enabled()", asMETHOD(Compressor, Enabled), asCALL_THISCALL) >= 0);
+    assert(engine->RegisterObjectMethod("Compressor", "uint getPressureSwitchValue()", asMETHOD(Compressor, GetPressureSwitchValue), asCALL_THISCALL) >= 0);
 
 }
 

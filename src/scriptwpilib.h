@@ -46,7 +46,7 @@ public:
     void clear();
 
     //DriverStation FMS TODO: this
-    /*float getStickAxis(unsigned int stick, unsigned int axis);
+    float getStickAxis(unsigned int stick, unsigned int axis);
     int getStickButtons(unsigned int stick);
 
     float getAnalogIn(unsigned int chan);
@@ -66,7 +66,6 @@ public:
     float getMatchTime();
     float getBatteryVoltage();
     unsigned int getTeamNumber();
-    */
 
     //Enhanced IO TODO: this
     /*
@@ -82,7 +81,8 @@ public:
     bool getDigital(unsigned int chan);
     */
 
-    DriverStationLCD* lcd;
+    DriverStationLCD* m_lcd;
+    DriverStation* m_ds;
 
 };
 
@@ -93,6 +93,7 @@ void registerControllers(asIScriptEngine* engine);
 void registerSensors(asIScriptEngine* engine);
 void registerTimer(asIScriptEngine* engine);
 void registerDriverStation(asIScriptEngine* engine);
+void registerCompressor(asIScriptEngine* engine);
 void registerRobotDrive(asIScriptEngine* engine);
 
 #endif /* SCRIPTWPILIB_H_ */
