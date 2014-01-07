@@ -10,6 +10,27 @@
 #include <iostream>
 #include <WPILib.h>
 
+void loadSCPKG(char* path)
+{
+    ((ScriptRobot*)RobotBase::getInstance())->load(path);
+    delete path;
+
+}
+
+void reloadSCPKG()
+{
+    ScriptRobot* instance = (ScriptRobot*)RobotBase::getInstance();
+    if(instance->getPackage() == NULL)
+    {
+        instance->load("FRC_UserProgram.scpkg");
+        return;
+
+    }
+
+    instance->load(instance->getPackage()->getPath());
+
+}
+
 ScriptRobot::ScriptRobot()
 {
     m_watchdog.SetEnabled(false);
@@ -33,6 +54,7 @@ ScriptRobot::ScriptRobot()
 
     m_ctx = m_engine->CreateContext();
     load("FRC_UserProgram.scpkg");
+    setInstance(this);
 
 }
 
