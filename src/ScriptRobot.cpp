@@ -12,25 +12,26 @@
 
 void loadSCPKG(char* path)
 {
-    ((ScriptRobot*)RobotBase::getInstance())->load(path);
+    ((ScriptRobot)RobotBase::getInstance()).load(path);
     delete path;
 
 }
 
 void reloadSCPKG()
 {
-    ScriptRobot* instance = (ScriptRobot*)RobotBase::getInstance();
-    if(instance->getPackage() == NULL)
+    ScriptRobot& instance = (ScriptRobot)RobotBase::getInstance();
+    if(instance.getPackage() == NULL)
     {
-        instance->load("FRC_UserProgram.scpkg");
+        instance.load("FRC_UserProgram.scpkg");
         return;
 
     }
 
-    instance->load(instance->getPackage()->getPath());
+    instance.load(instance.getPackage()->getPath());
 
 }
 
+//TODO: std::flush everywhere
 ScriptRobot::ScriptRobot()
 {
     m_watchdog.SetEnabled(false);
@@ -54,7 +55,6 @@ ScriptRobot::ScriptRobot()
 
     m_ctx = m_engine->CreateContext();
     load("FRC_UserProgram.scpkg");
-    setInstance(this);
 
 }
 
@@ -110,7 +110,7 @@ void ScriptRobot::load(std::string path)
     temp->load(path);
     if(temp->getLastError() != ScriptPackage::Error::NotBuilt)
     {
-        std::cout << temp->getLastErrorMessage() << "\n";
+        std::cout << temp->getLastErrorMessage() << "\n" << std::flush;
         delete temp;
         return;
 
@@ -119,7 +119,7 @@ void ScriptRobot::load(std::string path)
     temp->build(m_engine);
     if(!temp->isValid())
     {
-        std::cout << temp->getLastErrorMessage() << "\n";
+        std::cout << temp->getLastErrorMessage() << "\n" << std::flush;
         delete temp;
         return;
 
@@ -133,7 +133,7 @@ void ScriptRobot::load(std::string path)
     }
     m_package = temp;
 
-    std::cout << m_package->getLastErrorMessage() << "\n";
+    std::cout << m_package->getLastErrorMessage() << "\n" << std::flush;
 
     m_disabledRoutine = m_package->getDefaultDisabledRoutine();
     m_autonomousRoutine = m_package->getDefaultAutonomousRoutine();

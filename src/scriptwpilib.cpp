@@ -3,9 +3,11 @@
 
 #ifdef FAKEWPILIB
 #include "FakeWPILib/FakeWPILib.h"
+#include <stdint.h>
 #else
 #include "ScriptRobot.h"
 #include <WPILib.h>
+#include <types/vxTypes.h>
 #endif
 
 asDriverStation::asDriverStation()
@@ -297,14 +299,13 @@ void registerSensors(asIScriptEngine* engine)
 void registerTimer(asIScriptEngine* engine) //TODO: fix / test this
 {
     ///// Timer /////
-    /*assert(engine->RegisterObjectType("Timer", sizeof(Timer), asOBJ_REF | asOBJ_NOCOUNT) >= 0);
+    engine->RegisterObjectType("Timer", sizeof(Timer), asOBJ_VALUE | asOBJ_POD);
 
-    assert(engine->RegisterObjectMethod("Timer", "float get()", asMETHOD(Timer, Get), asCALL_THISCALL) >= 0);
-    assert(engine->RegisterObjectMethod("Timer", "void reset()", asMETHOD(Timer, Reset), asCALL_THISCALL) >= 0);
-    assert(engine->RegisterObjectMethod("Timer", "void start()", asMETHOD(Timer, Start), asCALL_THISCALL) >= 0);
-    assert(engine->RegisterObjectMethod("Timer", "void stop()", asMETHOD(Timer, Stop), asCALL_THISCALL) >= 0);
-    assert(engine->RegisterObjectMethod("Timer", "bool hasTimePassed(float)", asMETHOD(Timer, HasPeriodPassed), asCALL_THISCALL) >= 0);
-*/
+    engine->RegisterObjectMethod("Timer", "float get()", asMETHOD(Timer, Get), asCALL_THISCALL);
+    engine->RegisterObjectMethod("Timer", "void reset()", asMETHOD(Timer, Reset), asCALL_THISCALL);
+    engine->RegisterObjectMethod("Timer", "void start()", asMETHOD(Timer, Start), asCALL_THISCALL);
+    engine->RegisterObjectMethod("Timer", "void stop()", asMETHOD(Timer, Stop), asCALL_THISCALL);
+    engine->RegisterObjectMethod("Timer", "bool hasTimePassed(float)", asMETHOD(Timer, HasPeriodPassed), asCALL_THISCALL);
 
 }
 
@@ -365,11 +366,11 @@ void registerRobotDrive(asIScriptEngine* engine)
 
     ///// TankDrive /////
     assert(engine->RegisterObjectMethod("RobotDrive", "void tankDrive(Joystick@, Joystick@, bool squareInputs = true)", asMETHODPR(RobotDrive, TankDrive, (GenericHID*, GenericHID*, bool), void), asCALL_THISCALL) >= 0);
-    assert(engine->RegisterObjectMethod("RobotDrive", "void tankDrive(Joystick@, uint, Joystick@, uint, bool squareInputs = true)", asMETHODPR(RobotDrive, TankDrive, (GenericHID*, unsigned int, GenericHID*, unsigned int, bool), void), asCALL_THISCALL) >= 0);
+    assert(engine->RegisterObjectMethod("RobotDrive", "void tankDrive(Joystick@, uint, Joystick@, uint, bool squareInputs = true)", asMETHODPR(RobotDrive, TankDrive, (GenericHID*, uint32_t, GenericHID*, uint32_t, bool), void), asCALL_THISCALL) >= 0);
 
     ///// ArcadeDrive /////
     assert(engine->RegisterObjectMethod("RobotDrive", "void arcadeDrive(Joystick@, bool squareInputs = true)", asMETHODPR(RobotDrive, ArcadeDrive, (GenericHID*, bool), void), asCALL_THISCALL) >= 0);
-    assert(engine->RegisterObjectMethod("RobotDrive", "void arcadeDrive(Joystick@, uint, Joystick@, uint, bool squareInputs = true)", asMETHODPR(RobotDrive, ArcadeDrive, (GenericHID*, unsigned int, GenericHID*, unsigned int, bool), void), asCALL_THISCALL) >= 0);
+    assert(engine->RegisterObjectMethod("RobotDrive", "void arcadeDrive(Joystick@, uint, Joystick@, uint, bool squareInputs = true)", asMETHODPR(RobotDrive, ArcadeDrive, (GenericHID*, uint32_t, GenericHID*, uint32_t, bool), void), asCALL_THISCALL) >= 0);
 
     ///// MecanumDrive /////
     assert(engine->RegisterObjectMethod("RobotDrive", "void mecanumDrive(float, float, float, float)", asMETHOD(RobotDrive, MecanumDrive_Cartesian), asCALL_THISCALL) >= 0);
