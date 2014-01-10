@@ -12,22 +12,22 @@
 
 void loadSCPKG(char* path)
 {
-    ((ScriptRobot)RobotBase::getInstance()).load(path);
+    ((ScriptRobot*)&RobotBase::getInstance())->load(path);
     delete path;
 
 }
 
 void reloadSCPKG()
 {
-    ScriptRobot& instance = (ScriptRobot)RobotBase::getInstance();
-    if(instance.getPackage() == NULL)
+    ScriptRobot* instance = (ScriptRobot*)&RobotBase::getInstance();
+    if(instance->getPackage() == NULL)
     {
-        instance.load("FRC_UserProgram.scpkg");
+        instance->load("FRC_UserProgram.scpkg");
         return;
 
     }
 
-    instance.load(instance.getPackage()->getPath());
+    instance->load(instance->getPackage()->getPath());
 
 }
 

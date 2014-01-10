@@ -68,8 +68,9 @@ ScriptPackage::Error ScriptPackage::load(std::string path)
     }
 
     std::string header = "scpkg";
-    int headerSize = header.size()*sizeof(char*);
-    char headerBuffer[headerSize];
+    unsigned int headerSize = header.size();
+    char headerBuffer[headerSize+1];
+    memset(headerBuffer, 0, headerSize+1);
     file.read(headerBuffer, headerSize);
 
     if(std::string(headerBuffer) != header)
@@ -91,7 +92,8 @@ ScriptPackage::Error ScriptPackage::load(std::string path)
 
         if(nameSize != 0)
         {
-            char buffer[nameSize];
+            char buffer[nameSize+1];
+            memset(buffer, 0, nameSize+1);
             file.read(buffer, nameSize);
             nameStr = std::string(buffer);
 
@@ -103,7 +105,8 @@ ScriptPackage::Error ScriptPackage::load(std::string path)
 
         if(fileSize != 0)
         {
-            char buffer[fileSize];
+            char buffer[fileSize+1];
+            memset(buffer, 0, fileSize+1);
             file.read(buffer, fileSize);
             fileStr = std::string(buffer);
 
@@ -866,7 +869,7 @@ ScriptPackage::Error ScriptPackage::write(std::string path)
     }
 
     std::string header = "scpkg";
-    int headerSize = header.size()*sizeof(char*);
+    unsigned int headerSize = header.size();
     file.write(header.c_str(), headerSize);
 
     std::string projectConfigStr = getProjectConfig();
@@ -993,6 +996,7 @@ ScriptPackage::Error ScriptPackage::write(std::string path)
 
     }
 
+    file.flush();
     file.close();
 
     return getLastError();

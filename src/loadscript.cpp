@@ -1,5 +1,6 @@
 #include <fstream>
 #include "loadscript.h"
+#include <iostream>
 
 std::string loadScript(std::string path)
 {
@@ -17,13 +18,14 @@ std::string loadScript(std::string path)
         std::getline(f, line);
 
         if(line.find("//") < line.size())
-            line.substr(line.find("//"));
+            line = line.substr(0, line.find("//"));
 
         if(line.find("#include") < line.size())
         {
+            path = path.substr(0, path.rfind("/")+1);
             std::string includedFile = line.substr(line.find("\"")+1);
-            includedFile = includedFile.substr(line.find("\""));
-
+            includedFile = includedFile.substr(0, includedFile.rfind("\""));
+            includedFile = path + includedFile;
             line = loadScript(includedFile);
 
         }

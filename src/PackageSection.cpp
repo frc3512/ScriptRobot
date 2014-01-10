@@ -34,7 +34,7 @@ void PackageSection::setName(std::string name)
     }
 
     m_name = name;
-    m_nameSize = m_name.size()*sizeof(char*);
+    m_nameSize = m_name.size();
 
 }
 
@@ -53,7 +53,7 @@ void PackageSection::setFile(std::string file)
     }
 
     m_file = file;
-    m_fileSize = m_file.size()*sizeof(char*);
+    m_fileSize = m_file.size();
 
 }
 
