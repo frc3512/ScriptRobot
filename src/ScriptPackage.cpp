@@ -460,22 +460,22 @@ ScriptPackage::Error ScriptPackage::load(std::string path)
                 RobotDrive* temp;
                 if(params.size() == 2)
                 {
-                    unsigned int leftMotorChan = toUInt(params[0]);
-                    unsigned int rightMotorChan = toUInt(params[1]);
+                    std::string leftMotor = params[0];
+                    std::string rightMotor = params[1];
 
-                    temp = new RobotDrive(leftMotorChan, rightMotorChan);
+                    temp = new RobotDrive((SpeedController*)(getProperty(leftMotor)->getPtr()), (SpeedController*)(getProperty(rightMotor)->getPtr()));
                     addProperty(definition, type, name, temp);
 
                 }
                 else if(params.size() == 4)
                 {
-                    unsigned int frontLMotorChan = toUInt(params[0]);
-                    unsigned int rearLMotorChan = toUInt(params[1]);
-                    unsigned int frontRMotorChan = toUInt(params[2]);
-                    unsigned int rearRMotorChan = toUInt(params[3]);
+                    std::string frontLMotor = params[0];
+                    std::string rearLMotor = params[1];
+                    std::string frontRMotor = params[2];
+                    std::string rearRMotor = params[3];
 
-                    temp = new RobotDrive(frontLMotorChan, rearLMotorChan,
-                                frontRMotorChan, rearRMotorChan);
+                    temp = new RobotDrive((SpeedController*)getProperty(frontLMotor)->getPtr(), (SpeedController*)(getProperty(rearLMotor)->getPtr()),
+                                (SpeedController*)(getProperty(frontRMotor)->getPtr()), (SpeedController*)(getProperty(rearRMotor)->getPtr()));
                     addProperty(definition, type, name, temp);
 
                 }

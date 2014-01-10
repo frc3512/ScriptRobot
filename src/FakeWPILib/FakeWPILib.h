@@ -22,6 +22,13 @@ public:
 
 };
 
+class SpeedController
+{
+public:
+    SpeedController(){}
+
+};
+
 class Joystick : public GenericHID
 {
 public:
@@ -255,6 +262,8 @@ public:
     RobotDrive(){}
     RobotDrive(int, int){}
     RobotDrive(int, int, int, int){}
+    RobotDrive(SpeedController*, SpeedController*){}
+    RobotDrive(SpeedController*, SpeedController*, SpeedController*, SpeedController*){}
 
     typedef enum
     {
