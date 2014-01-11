@@ -588,7 +588,12 @@ void ScriptPackage::unload()
         void* ptr = (*m_properties.begin())->getPtr();
 
         //TODO: find a Better way of doing this
-        if(type == "int")
+        if(type == "DriverStation")
+        {
+            delete (DriverStation*)ptr;
+
+        }
+        else if(type == "int")
         {
             delete (int*)ptr;
 
@@ -694,6 +699,7 @@ void ScriptPackage::unload()
 
         }
 
+        delete (GlobalProperty*)m_properties.begin();
         m_properties.erase(m_properties.begin());
 
     }

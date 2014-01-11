@@ -108,6 +108,7 @@ Config::ParseError Config::parse(std::string file)
                 value_str = value_str.substr(1);
 
             SectionData data;
+            data.value = NULL;
             data.section = section;
             data.line = linenum;
             data.identifier = identifier;
@@ -304,7 +305,65 @@ void Config::clearSections()
     while(!sections.empty())
     {
         if(sections.begin()->value != NULL)
-            delete sections.begin()->value;
+        {
+            std::string type = sections.begin()->identifier;
+            if(type == "int")
+            {
+                delete (int*)sections.begin()->value;
+
+            }
+            else if(type == "@int")
+            {
+                delete (std::vector<int>*)sections.begin()->value;
+
+            }
+            else if(type == "uint")
+            {
+                delete (unsigned int*)sections.begin()->value;
+
+            }
+            else if(type == "@uint")
+            {
+                delete (std::vector<unsigned int>*)sections.begin()->value;
+
+            }
+            else if(type == "float")
+            {
+                delete (float*)sections.begin()->value;
+
+            }
+            else if(type == "@float")
+            {
+                delete (std::vector<float>*)sections.begin()->value;
+
+            }
+            else if(type == "string")
+            {
+                delete (std::string*)sections.begin()->value;
+
+            }
+            else if(type == "@string")
+            {
+                delete (std::vector<std::string>*)sections.begin()->value;
+
+            }
+            else if(type == "bool")
+            {
+                delete (bool*)sections.begin()->value;
+
+            }
+            else if(type == "@bool")
+            {
+                delete (std::vector<bool>*)sections.begin()->value;
+
+            }
+            else
+            {
+                ///YAY MEMORY LEAK
+
+            }
+
+        }
 
         sections.erase(sections.begin());
 
