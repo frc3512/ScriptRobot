@@ -280,7 +280,6 @@ ScriptPackage::Error ScriptPackage::load(std::string path)
                 }
 
                 unsigned int port = toUInt(params[0]);
-                std::cout << "Servo* temp = new Servo(" << port << ")\n";
                 Servo* temp = new Servo(port);
                 addProperty(definition, type, name, temp);
 
@@ -463,7 +462,12 @@ ScriptPackage::Error ScriptPackage::load(std::string path)
                     std::string leftMotor = params[0];
                     std::string rightMotor = params[1];
 
+                    std::cout << "robot drive two motor constructor: leftmotor: " << leftMotor << " rightMotor: " << rightMotor << "\n" << std::flush;
+
                     temp = new RobotDrive((SpeedController*)(getProperty(leftMotor)->getPtr()), (SpeedController*)(getProperty(rightMotor)->getPtr()));
+
+                    temp->SetSafetyEnabled(false);
+
                     addProperty(definition, type, name, temp);
 
                 }
@@ -474,8 +478,13 @@ ScriptPackage::Error ScriptPackage::load(std::string path)
                     std::string frontRMotor = params[2];
                     std::string rearRMotor = params[3];
 
+                    std::cout << "robot drive four motor constructor: frontLeft: " << frontLMotor << " rearLeft: " << rearLMotor << " frontRight: " << frontRMotor << " rearRight: " << rearRMotor << "\n" << std::flush;
+
                     temp = new RobotDrive((SpeedController*)getProperty(frontLMotor)->getPtr(), (SpeedController*)(getProperty(rearLMotor)->getPtr()),
                                 (SpeedController*)(getProperty(frontRMotor)->getPtr()), (SpeedController*)(getProperty(rearRMotor)->getPtr()));
+
+                    temp->SetSafetyEnabled(false);
+
                     addProperty(definition, type, name, temp);
 
                 }
@@ -784,7 +793,6 @@ ScriptPackage::Error ScriptPackage::build(asIScriptEngine* engine)
         std::list<ScriptRoutine*>::iterator it;
         for(it = m_routines.begin(); it != m_routines.end(); it++)
         {
-            std::cout << "loading hooks for: " << (*it)->getName() << "\n";
             (*it)->loadHooksFromEngine(m_engine);
 
         }

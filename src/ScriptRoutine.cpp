@@ -200,7 +200,15 @@ asIScriptFunction* ScriptRoutine::getHook(unsigned int i)
 
     }
 
-    return (*m_hooks.begin() += i);
+    std::list<asIScriptFunction*>::iterator it;
+    it = m_hooks.begin();
+    for(unsigned int u = 0; u < i; u++)
+    {
+        it++;
+
+    }
+
+    return *it;
 
 }
 

@@ -265,6 +265,8 @@ public:
     RobotDrive(SpeedController*, SpeedController*){}
     RobotDrive(SpeedController*, SpeedController*, SpeedController*, SpeedController*){}
 
+    void SetSafetyEnabled(bool){}
+
     typedef enum
     {
         kFrontLeftMotor = 0,
