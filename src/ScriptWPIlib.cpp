@@ -365,13 +365,27 @@ void ScriptWPILib::registerSensors(asIScriptEngine* engine)
 void ScriptWPILib::registerTimer(asIScriptEngine* engine) //TODO: fix / test this
 {
     ///// Timer /////
-    engine->RegisterObjectType("Timer", sizeof(Timer), asOBJ_VALUE | asOBJ_POD);
+    engine->RegisterObjectType("Timer", sizeof(Timer), asOBJ_VALUE);
+    engine->RegisterObjectBehaviour("Timer", asBEHAVE_CONSTRUCT, "void f()", asFUNCTION(timerConstructor), asCALL_CDECL_OBJLAST);
+    engine->RegisterObjectBehaviour("Timer", asBEHAVE_DESTRUCT, "void f()", asFUNCTION(timerDestructor), asCALL_CDECL_OBJLAST);
 
     engine->RegisterObjectMethod("Timer", "float get()", asMETHOD(Timer, Get), asCALL_THISCALL);
     engine->RegisterObjectMethod("Timer", "void reset()", asMETHOD(Timer, Reset), asCALL_THISCALL);
     engine->RegisterObjectMethod("Timer", "void start()", asMETHOD(Timer, Start), asCALL_THISCALL);
     engine->RegisterObjectMethod("Timer", "void stop()", asMETHOD(Timer, Stop), asCALL_THISCALL);
     engine->RegisterObjectMethod("Timer", "bool hasTimePassed(float)", asMETHOD(Timer, HasPeriodPassed), asCALL_THISCALL);
+
+}
+
+void ScriptWPILib::timerConstructor(void* memory)
+{
+	new (memory)Timer();
+
+}
+
+void ScriptWPILib::timerDestructor(void* memory)
+{
+	((Timer*)memory)->~Timer();
 
 }
 
@@ -654,7 +668,7 @@ void* ScriptWPILib::robotDriveFactory(std::vector<std::string> params, void* dat
 
     for(unsigned int i = 0; i < params.size(); i++)
     {
-        GlobalProperty* property = package->getProperty(params[0]);
+        GlobalProperty* property = package->getProperty(params[i]);
         if(property == NULL)
         {
             std::cout << "property is null\n";
@@ -687,13 +701,17 @@ void* ScriptWPILib::robotDriveFactory(std::vector<std::string> params, void* dat
     {
         std::cout << "two motors\n";
         temp = new RobotDrive(controllers[0], controllers[1]);
-        return temp;
+       	temp->SetExpiration(1);
+	
+	return temp;
 
     }
     else if(controllers.size() == 4)
     {
         std::cout << "four motors\n";
         temp = new RobotDrive(controllers[0], controllers[1], controllers[2], controllers[3]);
+	temp->SetExpiration(1);
+
         return temp;
 
     }

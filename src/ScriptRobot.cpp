@@ -96,7 +96,6 @@ void ScriptRobot::load(std::string path)
     }
 
     ScriptPackage* temp = new ScriptPackage;
-    setup(temp);
     temp->read(path);
     if(temp->getLastError() != ScriptPackage::NotLoaded)
     {
@@ -107,7 +106,10 @@ void ScriptRobot::load(std::string path)
 
     }
 
+    setup(temp);
+std::cout << "loading\n";
     temp->load();
+std::cout << "finished loading\n";
     if(temp->getLastError() != ScriptPackage::NotBuilt)
     {
         std::cout << temp->getLastErrorMessage() << "\n" << std::flush;

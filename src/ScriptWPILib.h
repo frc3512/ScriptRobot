@@ -79,7 +79,11 @@ public:
     static void registerJoystick(asIScriptEngine* engine);
     static void registerControllers(asIScriptEngine* engine);
     static void registerSensors(asIScriptEngine* engine);
+
     static void registerTimer(asIScriptEngine* engine);
+    static void timerConstructor(void* memory);
+    static void timerDestructor(void* memory);
+
     static void registerDriverStation(asIScriptEngine* engine);
     static void registerCompressor(asIScriptEngine* engine);
     static void registerRobotDrive(asIScriptEngine* engine);

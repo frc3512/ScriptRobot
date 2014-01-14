@@ -14,8 +14,6 @@
 #include <netinet/in.h>
 #endif
 
-#include "scriptwpilib.h"
-
 ScriptPackage::ScriptPackage()
 {
     m_engine = NULL;
@@ -26,6 +24,7 @@ ScriptPackage::ScriptPackage()
 
 ScriptPackage::~ScriptPackage()
 {
+    clear();
     unload();
 
 }
@@ -60,7 +59,7 @@ ScriptPackage::Error ScriptPackage::read(std::string path)
 
     path = addExstension(path);
 
-    PackageArchive::Error error = m_archive.read(path);
+    PackageArchive::Error error = m_archive.read(path);   
     if(error != PackageArchive::NoError)
     {
         setError(ScriptPackage::ArchiveError, "Error while reading archive: " + path + "\n\terror: " + toString(error));
@@ -78,10 +77,12 @@ void ScriptPackage::clear()
     unload();
     m_archive.clear();
 
-    std::list<ScriptPlugin*>::iterator it;
-    for(it = m_plugins.begin(); it != m_plugins.end(); it++)
+std::cout << "clearing\n";
+
+    while(!m_plugins.empty())
     {
         delete (*m_plugins.begin());
+	m_plugins.erase(m_plugins.begin());
 
     }
 
@@ -103,13 +104,16 @@ ScriptPackage::Error ScriptPackage::load()
     }
 
     unload();
+std::cout << "initing plugin factories\n";
 
     {//init all plugin factories
+std::cout << "plugins: " << m_plugins.size() << "\n";
         std::list<ScriptPlugin*>::iterator it;
         for(it = m_plugins.begin(); it != m_plugins.end(); it++)
         {
-            if(!(*it)->areFactoriesInitialized())
+            if((*it) != NULL && !(*it)->areFactoriesInitialized())
             {
+		std::cout << "initing plugin: " << (*it)->getName() << "\n";
                 (*it)->initFactories();
 
             }
@@ -117,6 +121,8 @@ ScriptPackage::Error ScriptPackage::load()
         }
 
     }
+
+std::cout << "setting up all routines and properties\n";
 
     {//setup all routines and add all properties
         std::list<PackageSection*> sections = m_archive.getSections();
@@ -190,7 +196,10 @@ ScriptPackage::Error ScriptPackage::load()
             }
 
         }
+
     }
+
+std::cout << "finished loading\n";
 
     setError(ScriptPackage::NotBuilt, "Package loaded, but not built");
     return getLastError();
@@ -724,6 +733,7 @@ void ScriptPackage::addPlugin(ScriptPlugin* plugin)
 
     }
 
+    std::cout << "added plugin: " << plugin->getName() << "\n";
     remPlugin(plugin->getName());
     m_plugins.push_back(plugin);
 
