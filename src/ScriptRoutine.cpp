@@ -2,7 +2,7 @@
 
 ScriptRoutine::ScriptRoutine()
 {
-    m_type = ScriptRoutine::None;
+    m_typet = ScriptRoutine::None;
 
 }
 
@@ -74,19 +74,19 @@ std::string ScriptRoutine::getName()
 
 void ScriptRoutine::setType(ScriptRoutine::Type type)
 {
-    if(m_type != ScriptRoutine::None)
+    if(m_typet != ScriptRoutine::None)
     {
         return;
 
     }
 
-    m_type = type;
+    m_typet = type;
 
 }
 
 ScriptRoutine::Type ScriptRoutine::getType()
 {
-    return m_type;
+    return m_typet;
 
 }
 
@@ -214,27 +214,27 @@ asIScriptFunction* ScriptRoutine::getHook(unsigned int i)
 
 std::string ScriptRoutine::getHookDecl()
 {
-    if(m_type == ScriptRoutine::Init)
+    if(m_typet == ScriptRoutine::Init)
     {
         return "void onInit(Robot@)";
 
     }
-    else if(m_type == ScriptRoutine::Disabled)
+    else if(m_typet == ScriptRoutine::Disabled)
     {
         return "void onDisabled(Robot@)";
 
     }
-    else if(m_type == ScriptRoutine::Autonomous)
+    else if(m_typet == ScriptRoutine::Autonomous)
     {
         return "void onAutonomous(Robot@)";
 
     }
-    else if(m_type == ScriptRoutine::OperatorControl)
+    else if(m_typet == ScriptRoutine::OperatorControl)
     {
         return "void onOperatorControl(Robot@)";
 
     }
-    else if(m_type == ScriptRoutine::Test)
+    else if(m_typet == ScriptRoutine::Test)
     {
         return "void onTest(Robot@)";
 

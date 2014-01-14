@@ -71,7 +71,7 @@ private:
     void* m_ptr; ///< A pointer to the property registered in the angelscript engine.
 
     std::string m_definition; ///< The line in a config that generated this property.
-    std::string m_type; ///< The property type as registered in angelscript.
+    std::string m_typet; ///< The property type as registered in angelscript.
     std::string m_name; ///< The property name as registered in angelscript.
 
 };

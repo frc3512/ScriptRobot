@@ -40,7 +40,7 @@ public:
     void clean(void* ptr);
 
 private:
-    std::string m_type;
+    std::string m_typet;
 
     FactoryInfo::Factory m_factory;
     FactoryInfo::Recycler m_recycler;

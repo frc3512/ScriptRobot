@@ -16,10 +16,10 @@ GlobalProperty::~GlobalProperty()
 
 void GlobalProperty::setup(std::string definition, std::string type, std::string name, void* ptr)
 {
-    if(m_definition == "" && m_type == "" && m_name == "" && m_ptr == NULL)
+    if(m_definition == "" && m_typet == "" && m_name == "" && m_ptr == NULL)
     {
         m_definition = definition;
-        m_type = type;
+        m_typet = type;
         m_name = name;
         m_ptr = ptr;
 
@@ -29,7 +29,7 @@ void GlobalProperty::setup(std::string definition, std::string type, std::string
 
 bool GlobalProperty::registerProperty(asIScriptEngine* engine, bool configGroup)
 {
-    if(engine == NULL || m_definition == "" || m_type == "" || m_name == "" || m_ptr == NULL)
+    if(engine == NULL || m_definition == "" || m_typet == "" || m_name == "" || m_ptr == NULL)
     {
         return false;
 
@@ -43,7 +43,7 @@ bool GlobalProperty::registerProperty(asIScriptEngine* engine, bool configGroup)
 
     }
 
-    int error = m_engine->RegisterGlobalProperty((m_type + " " + m_name).c_str(), m_ptr);
+    int error = m_engine->RegisterGlobalProperty((m_typet + " " + m_name).c_str(), m_ptr);
 
     if(configGroup)
     {
@@ -89,7 +89,7 @@ std::string GlobalProperty::getDefinition()
 
 std::string GlobalProperty::getType()
 {
-    return m_type;
+    return m_typet;
 
 }
 

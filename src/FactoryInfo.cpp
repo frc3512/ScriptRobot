@@ -16,7 +16,7 @@ FactoryInfo::FactoryInfo()
 
 FactoryInfo::FactoryInfo(std::string type, FactoryInfo::Factory factory, FactoryInfo::Recycler recycler)
 {
-    m_type = type;
+    m_typet = type;
     m_factory = factory;
     m_recycler = recycler;
 
@@ -31,7 +31,7 @@ FactoryInfo::FactoryInfo(std::string type, FactoryInfo::Factory factory, Factory
 FactoryInfo::FactoryInfo(std::string type, FactoryInfo::Factory factory, FactoryInfo::Recycler recycler,
         bool anyParams, uint32_t params, bool useData)
 {
-    m_type = type;
+    m_typet = type;
     m_factory = factory;
     m_recycler = recycler;
 
@@ -47,7 +47,7 @@ FactoryInfo::~FactoryInfo()
 {
     if(m_objectCount != 0)
     {
-        std::cout << "/////WARNING/////\n" << "Factory for type: " << m_type << " did not destroy " << m_objectCount << "\n";
+        std::cout << "/////WARNING/////\n" << "Factory for type: " << m_typet << " did not destroy " << m_objectCount << "\n";
 
     }
 
@@ -55,7 +55,7 @@ FactoryInfo::~FactoryInfo()
 
 std::string FactoryInfo::getType()
 {
-    return m_type;
+    return m_typet;
 
 }
 
