@@ -3,6 +3,7 @@
 
 #include <list>
 #include <string>
+#include <string.h>
 #include <fstream>
 
 #include "PackageSection.h"
@@ -14,6 +15,7 @@
 #include <netinet/in.h>
 #include <stdint.h>
 #elif defined __BORLANDC__ || defined __VXWORKS__
+#include <netinet/in.h>
 #include <types/vxTypes.h>
 #endif
 
@@ -32,7 +34,7 @@ public:
         NotAPackageArchive = -2,
         NothingToWrite = -3
 
-    };
+    } Error;
 
     PackageArchive::Error read(std::string path);
     PackageArchive::Error write(std::string path);

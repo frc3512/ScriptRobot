@@ -11,7 +11,7 @@ class ScriptRobot : public RobotBase
 public:
     ScriptRobot();
 
-    virtual void setup();
+    virtual void onSetup(ScriptPackage* package);
     virtual void onInit();
     virtual void onDisabled();
     virtual void onAutonomous();
@@ -40,6 +40,8 @@ public:
     static void print(std::string msg);
 
 protected:
+    void setup(ScriptPackage* package);
+
     bool reloading; ///< reloading
     asIScriptEngine* m_engine; ///< Angelscript engine.
     asIScriptContext* m_ctx; ///< Script context.

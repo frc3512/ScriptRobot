@@ -39,7 +39,7 @@ public:
      * @param engine a valid instance of an anglescript engine.
      * @return true on success.
      */
-    bool registerProperty(asIScriptEngine* engine);
+    bool registerProperty(asIScriptEngine* engine, bool configGroup = true);
 
     /**Releases the global property.
      * Removes the angelscript dynamic config group containing the property.

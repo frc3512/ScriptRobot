@@ -1,12 +1,6 @@
 #include "ScriptRobot.h"
-#include "scriptwpilib.h"
-#include "add_on/scriptarray/scriptarray.h"
-#include "add_on/scriptstdstring/scriptstdstring.h"
-#include "add_on/scriptdictionary/scriptdictionary.h"
-#include "add_on/scriptmath/scriptmath.h"
-#include "add_on/scriptany/scriptany.h"
-#include "Convert/convertstring.h"
-#include "Convert/units.h"
+#include "ScriptWPILib.h"
+#include "DefaultPlugin.h"
 #include <iostream>
 #include <WPILib.h>
 
@@ -37,21 +31,9 @@ ScriptRobot::ScriptRobot()
     m_watchdog.SetEnabled(false);
 
     m_engine = asCreateScriptEngine(ANGELSCRIPT_VERSION);
-    RegisterScriptArray(m_engine, true);
-    RegisterStdString(m_engine);
-    RegisterScriptDictionary_Generic(m_engine);
-    RegisterScriptMath(m_engine);
-    RegisterScriptAny_Generic(m_engine);
-    registerWPILib(m_engine);
-    registerConvertString(m_engine);
-    registerConvertUnits(m_engine);
-    m_engine->SetMessageCallback(asFUNCTION(ScriptRobot::messageCallback), 0, asCALL_CDECL);
-    m_engine->RegisterGlobalFunction("void print(string)", asFUNCTION(ScriptRobot::print), asCALL_CDECL);
 
-    setup();
-
-    m_package = NULL;
     m_routine = NULL;
+    m_package = NULL;
 
     m_ctx = m_engine->CreateContext();
     load("FRC_UserProgram.scpkg");
@@ -66,7 +48,7 @@ ScriptRobot::~ScriptRobot()
 
 }
 
-void ScriptRobot::setup()
+void ScriptRobot::onSetup(ScriptPackage* package)
 {
     //OVERRIDEME
 
@@ -106,13 +88,38 @@ void ScriptRobot::load(std::string path)
 {
     reloading = true;
 
+    if(m_engine == NULL)
+    {
+        reloading = false;
+        return;
+
+    }
+
     ScriptPackage* temp = new ScriptPackage;
-    temp->load(path);
-    if(temp->getLastError() != ScriptPackage::Error::NotBuilt)
+    setup(temp);
+    temp->read(path);
+    if(temp->getLastError() != ScriptPackage::NotLoaded)
     {
         std::cout << temp->getLastErrorMessage() << "\n" << std::flush;
         delete temp;
+        reloading = false;
         return;
+
+    }
+
+    temp->load();
+    if(temp->getLastError() != ScriptPackage::NotBuilt)
+    {
+        std::cout << temp->getLastErrorMessage() << "\n" << std::flush;
+        delete temp;
+        reloading = false;
+        return;
+
+    }
+
+    if(m_package != NULL)
+    {
+        m_package->unload();
 
     }
 
@@ -121,6 +128,13 @@ void ScriptRobot::load(std::string path)
     {
         std::cout << temp->getLastErrorMessage() << "\n" << std::flush;
         delete temp;
+        if(m_package != NULL)
+        {
+            m_package->load();
+            m_package->build(m_engine);
+
+        }
+        reloading = false;
         return;
 
     }
@@ -228,6 +242,15 @@ std::string ScriptRobot::getTestRoutine()
 
 }
 
+void ScriptRobot::setup(ScriptPackage* package)
+{
+    package->addPlugin(new DefaultPlugin);
+    package->addPlugin(new ScriptWPILib);
+
+    onSetup(package);
+
+}
+
 void ScriptRobot::StartCompetition()
 {
     LiveWindow* lw = LiveWindow::GetInstance();
@@ -254,23 +277,23 @@ void ScriptRobot::StartCompetition()
         }
         else if(IsDisabled())
         {
-            if(!(m_engine == NULL || m_ctx == NULL || m_package == NULL))
-            {
-                m_routine = m_package->getRoutine(m_disabledRoutine);
-
-            }
-            else
-            {
-                m_routine = NULL;
-
-            }
-
             m_ds->InDisabled(true);
             while(IsDisabled())
             {
                 if(isReloading())
                 {
                     break;
+
+                }
+
+                if(!(m_engine == NULL || m_ctx == NULL || m_package == NULL))
+                {
+                    m_routine = m_package->getRoutine(m_disabledRoutine);
+
+                }
+                else
+                {
+                    m_routine = NULL;
 
                 }
 
@@ -284,23 +307,23 @@ void ScriptRobot::StartCompetition()
         }
         else if(IsAutonomous())
         {
-            if(!(m_engine == NULL || m_ctx == NULL || m_package == NULL))
-            {
-                m_routine = m_package->getRoutine(m_autonomousRoutine);
-
-            }
-            else
-            {
-                m_routine = NULL;
-
-            }
-
             m_ds->InAutonomous(true);
             while(IsAutonomous() && IsEnabled())
             {
                 if(isReloading())
                 {
                     break;
+
+                }
+
+                if(!(m_engine == NULL || m_ctx == NULL || m_package == NULL))
+                {
+                    m_routine = m_package->getRoutine(m_autonomousRoutine);
+
+                }
+                else
+                {
+                    m_routine = NULL;
 
                 }
 
@@ -314,17 +337,6 @@ void ScriptRobot::StartCompetition()
         }
         else if(IsOperatorControl())
         {
-            if(!(m_engine == NULL || m_ctx == NULL || m_package == NULL))
-            {
-                m_routine = m_package->getRoutine(m_operatorControlRoutine);
-
-            }
-            else
-            {
-                m_routine = NULL;
-
-            }
-
             lw->SetEnabled(true);
             m_ds->InOperatorControl(true);
             while(IsOperatorControl() && IsEnabled())
@@ -332,6 +344,17 @@ void ScriptRobot::StartCompetition()
                 if(isReloading())
                 {
                     break;
+
+                }
+
+                if(!(m_engine == NULL || m_ctx == NULL || m_package == NULL))
+                {
+                    m_routine = m_package->getRoutine(m_operatorControlRoutine);
+
+                }
+                else
+                {
+                    m_routine = NULL;
 
                 }
 
@@ -346,23 +369,23 @@ void ScriptRobot::StartCompetition()
         }
         else if(IsTest())
         {
-            if(!(m_engine == NULL || m_ctx == NULL || m_package == NULL))
-            {
-                m_routine = m_package->getRoutine(m_testRoutine);
-
-            }
-            else
-            {
-                m_routine = NULL;
-
-            }
-
             m_ds->InTest(true);
             while(IsTest() && IsEnabled())
             {
                 if(isReloading())
                 {
                     break;
+
+                }
+
+                if(!(m_engine == NULL || m_ctx == NULL || m_package == NULL))
+                {
+                    m_routine = m_package->getRoutine(m_testRoutine);
+
+                }
+                else
+                {
+                    m_routine = NULL;
 
                 }
 
@@ -405,39 +428,6 @@ void ScriptRobot::executeRoutine()
         }
 
     }
-
-}
-
-void ScriptRobot::print(std::string msg)
-{
-    std::cout << msg << "\n";
-
-}
-
-void ScriptRobot::messageCallback(const asSMessageInfo* msg)
-{
-    std::string s;
-    if(msg->type == asMSGTYPE_WARNING)
-    {
-        s = "WARN ";
-
-    }
-    else if(msg->type == asMSGTYPE_INFORMATION)
-    {
-        s = "INFO ";
-
-    }
-
-    s = s
-        + "an error occurred on line: "
-        + toString(msg->row)
-        + "\n\tof file: "
-        + std::string(msg->section)
-        + " . . . \n\t"
-        + std::string(msg->message)
-        + "\n";
-
-    print(s);
 
 }
 

@@ -1,14 +1,7 @@
-#include "scriptwpilib.h"
-#include "add_on/vxw_assert.h"
-
-#ifdef FAKEWPILIB
-#include "FakeWPILib/FakeWPILib.h"
-#include <stdint.h>
-#else
-#include "ScriptRobot.h"
-#include <WPILib.h>
-#include <types/vxTypes.h>
-#endif
+#include "ScriptWPILib.h"
+#include "Convert/convertstring.h"
+#include "ScriptPackage.h"
+#include <iostream>
 
 asDriverStation::asDriverStation()
 {
@@ -140,21 +133,95 @@ unsigned int asDriverStation::getTeamNumber()
 
 }
 
-void registerWPILib(asIScriptEngine* engine)
+ScriptWPILib::ScriptWPILib()
 {
-    registerJoystick(engine);
-    registerControllers(engine);
-    registerSensors(engine);
-    registerTimer(engine);
-    registerDriverStation(engine);
-    registerCompressor(engine);
-    registerRobotDrive(engine);
+    m_driverStation = NULL;
+
+}
+
+void ScriptWPILib::onInitFactories()
+{
+    m_factory->add(new FactoryInfo("Joystick", joystickFactory, joystickRecycler, false, 1, false));
+    m_factory->add(new FactoryInfo("Servo", servoFactory, servoRecycler, false, 1, false));
+    m_factory->add(new FactoryInfo("Relay", relayFactory, relayRecycler, false, 1, false));
+    m_factory->add(new FactoryInfo("Solenoid", solenoidFactory, solenoidRecycler, false, 1, false));
+    m_factory->add(new FactoryInfo("DoubleSolenoid", doubleSolenoidFactory, doubleSolenoidRecycler, false, 2, false));
+    m_factory->add(new FactoryInfo("Victor", victorFactory, victorRecycler, false, 1, false));
+    m_factory->add(new FactoryInfo("Jaguar", jaguarFactory, jaguarRecycler, false, 1, false));
+    m_factory->add(new FactoryInfo("Talon", talonFactory, talonRecycler, false, 1, false));
+    m_factory->add(new FactoryInfo("Counter", counterFactory, counterRecycler, false, 1, false));
+    m_factory->add(new FactoryInfo("Encoder", encoderFactory, encoderRecycler, false, 2, false));
+    m_factory->add(new FactoryInfo("AnalogChannel", analogChannelFactory, analogChannelRecycler, false, 1, false));
+    m_factory->add(new FactoryInfo("DigitalInput", digitalInputFactory, digitalInputRecycler, false, 1, false));
+    m_factory->add(new FactoryInfo("Timer", timerFactory, timerRecycler, true, 0, false));
+    m_factory->add(new FactoryInfo("Compressor", compressorFactory, compressorRecycler, false, 2, false));
+    m_factory->add(new FactoryInfo("RobotDrive", robotDriveFactory, robotDriveRecycler, true, 0, true));
+
+    if(m_driverStation == NULL)
+    {
+        m_driverStation = new GlobalProperty;
+        m_driverStation->setup("DriverStation driverStation;", "DriverStation", "driverStation", new asDriverStation);
+
+    }
+
+}
+
+void ScriptWPILib::onInitBindings()
+{
+    ScriptWPILib::registerWPILib(m_engine);
+
+    if(m_driverStation != NULL)
+    {
+        m_driverStation->registerProperty(m_engine, false);
+
+    }
+
+}
+
+void ScriptWPILib::onDeinitFactories()
+{
+    if(m_driverStation != NULL)
+    {
+        delete (asDriverStation*)m_driverStation->getPtr();
+        delete m_driverStation;
+
+    }
+
+    m_driverStation = NULL;
+
+}
+
+void ScriptWPILib::onDeinitBindings()
+{
+    if(m_driverStation != NULL)
+    {
+        m_driverStation->release();
+
+    }
+
+}
+
+std::string ScriptWPILib::getName()
+{
+    return "wpilib";
+
+}
+
+void ScriptWPILib::registerWPILib(asIScriptEngine* engine)
+{
+    ScriptWPILib::registerJoystick(engine);
+    ScriptWPILib::registerControllers(engine);
+    ScriptWPILib::registerSensors(engine);
+    ScriptWPILib::registerTimer(engine);
+    ScriptWPILib::registerDriverStation(engine);
+    ScriptWPILib::registerCompressor(engine);
+    ScriptWPILib::registerRobotDrive(engine);
 
     engine->RegisterObjectType("Robot", sizeof(ScriptRobot), asOBJ_REF | asOBJ_NOCOUNT);
 
 }
 
-void registerJoystick(asIScriptEngine* engine)
+void ScriptWPILib::registerJoystick(asIScriptEngine* engine)
 {
     ///// Joystick /////
     assert(engine->RegisterObjectType("Joystick", sizeof(Joystick), asOBJ_REF | asOBJ_NOCOUNT) >= 0);
@@ -184,7 +251,7 @@ void registerJoystick(asIScriptEngine* engine)
 
 }
 
-void registerControllers(asIScriptEngine* engine)
+void ScriptWPILib::registerControllers(asIScriptEngine* engine)
 {
     ///// Servo /////
     assert(engine->RegisterObjectType("Servo", sizeof(Servo), asOBJ_REF | asOBJ_NOCOUNT) >= 0);
@@ -244,7 +311,7 @@ void registerControllers(asIScriptEngine* engine)
 
 }
 
-void registerSensors(asIScriptEngine* engine)
+void ScriptWPILib::registerSensors(asIScriptEngine* engine)
 {
     ///// Counter /////
     assert(engine->RegisterObjectType("Counter", sizeof(Counter), asOBJ_REF | asOBJ_NOCOUNT) >= 0);
@@ -293,10 +360,9 @@ void registerSensors(asIScriptEngine* engine)
     assert(engine->RegisterObjectMethod("DigitalInput", "uint get()", asMETHOD(DigitalInput, Get), asCALL_THISCALL) >= 0);
     assert(engine->RegisterObjectMethod("DigitalInput", "void setupSourceEdge(bool, bool)", asMETHOD(DigitalInput, SetUpSourceEdge), asCALL_THISCALL) >= 0);
 
-
 }
 
-void registerTimer(asIScriptEngine* engine) //TODO: fix / test this
+void ScriptWPILib::registerTimer(asIScriptEngine* engine) //TODO: fix / test this
 {
     ///// Timer /////
     engine->RegisterObjectType("Timer", sizeof(Timer), asOBJ_VALUE | asOBJ_POD);
@@ -309,7 +375,7 @@ void registerTimer(asIScriptEngine* engine) //TODO: fix / test this
 
 }
 
-void registerDriverStation(asIScriptEngine* engine)
+void ScriptWPILib::registerDriverStation(asIScriptEngine* engine)
 {
     assert(engine->RegisterObjectType("DriverStation", sizeof(asDriverStation), asOBJ_REF | asOBJ_NOCOUNT) >= 0);
 
@@ -338,7 +404,7 @@ void registerDriverStation(asIScriptEngine* engine)
 
 }
 
-void registerCompressor(asIScriptEngine* engine)
+void ScriptWPILib::registerCompressor(asIScriptEngine* engine)
 {
     assert(engine->RegisterObjectType("Compressor", sizeof(Compressor), asOBJ_REF | asOBJ_NOCOUNT) >= 0);
 
@@ -349,7 +415,7 @@ void registerCompressor(asIScriptEngine* engine)
 
 }
 
-void registerRobotDrive(asIScriptEngine* engine)
+void ScriptWPILib::registerRobotDrive(asIScriptEngine* engine)
 {
     ///// Robot Drive /////
     assert(engine->RegisterObjectType("RobotDrive", sizeof(RobotDrive), asOBJ_REF | asOBJ_NOCOUNT) >= 0);
@@ -378,5 +444,267 @@ void registerRobotDrive(asIScriptEngine* engine)
 
     ///// HolonomicDrive /////
     assert(engine->RegisterObjectMethod("RobotDrive", "void holonomicDrive(float, float, float)", asMETHOD(RobotDrive, HolonomicDrive), asCALL_THISCALL) >= 0);
+
+}
+
+void* ScriptWPILib::joystickFactory(std::vector<std::string> params, void* data)
+{
+    uint32_t port = toUInt(params[0]);
+    Joystick* temp = new Joystick(port);
+    return temp;
+
+}
+
+void ScriptWPILib::joystickRecycler(void* ptr)
+{
+    delete (Joystick*)ptr;
+
+}
+
+void* ScriptWPILib::servoFactory(std::vector<std::string> params, void* data)
+{
+    uint32_t port = toUInt(params[0]);
+    Servo* temp = new Servo(port);
+    return temp;
+
+}
+
+void ScriptWPILib::servoRecycler(void* ptr)
+{
+    delete (Servo*)ptr;
+
+}
+
+void* ScriptWPILib::relayFactory(std::vector<std::string> params, void* data)
+{
+    uint32_t port = toUInt(params[0]);
+    Relay* temp = new Relay(port);
+    return temp;
+
+}
+
+void ScriptWPILib::relayRecycler(void* ptr)
+{
+    delete (Relay*)ptr;
+
+}
+
+void* ScriptWPILib::solenoidFactory(std::vector<std::string> params, void* data)
+{
+    uint32_t port = toUInt(params[0]);
+    Solenoid* temp = new Solenoid(port);
+    return temp;
+
+}
+
+void ScriptWPILib::solenoidRecycler(void* ptr)
+{
+    delete (Solenoid*)ptr;
+
+}
+
+void* ScriptWPILib::doubleSolenoidFactory(std::vector<std::string> params, void* data)
+{
+    uint32_t port1 = toUInt(params[0]);
+    uint32_t port2 = toUInt(params[1]);
+    DoubleSolenoid* temp = new DoubleSolenoid(port1, port2);
+    return temp;
+
+}
+
+void ScriptWPILib::doubleSolenoidRecycler(void* ptr)
+{
+    delete (DoubleSolenoid*)ptr;
+
+}
+
+void* ScriptWPILib::victorFactory(std::vector<std::string> params, void* data)
+{
+    uint32_t port = toUInt(params[0]);
+    Victor* temp = new Victor(port);
+    return temp;
+
+}
+
+void ScriptWPILib::victorRecycler(void* ptr)
+{
+    delete (Victor*)ptr;
+
+}
+
+void* ScriptWPILib::jaguarFactory(std::vector<std::string> params, void* data)
+{
+    uint32_t port = toUInt(params[0]);
+    Jaguar* temp = new Jaguar(port);
+    return temp;
+
+}
+
+void ScriptWPILib::jaguarRecycler(void* ptr)
+{
+    delete (Jaguar*)ptr;
+
+}
+
+void* ScriptWPILib::talonFactory(std::vector<std::string> params, void* data)
+{
+    uint32_t port = toUInt(params[0]);
+    Talon* temp = new Talon(port);
+    return temp;
+
+}
+
+void ScriptWPILib::talonRecycler(void* ptr)
+{
+    delete (Talon*)ptr;
+
+}
+
+void* ScriptWPILib::counterFactory(std::vector<std::string> params, void* data)
+{
+    uint32_t port = toUInt(params[0]);
+    Counter* temp = new Counter(port);
+    return temp;
+
+}
+
+void ScriptWPILib::counterRecycler(void* ptr)
+{
+    delete (Counter*)ptr;
+
+}
+
+void* ScriptWPILib::encoderFactory(std::vector<std::string> params, void* data)
+{
+    uint32_t port1 = toUInt(params[0]);
+    uint32_t port2 = toUInt(params[1]);
+    Encoder* temp = new Encoder(port1, port2);
+    return temp;
+
+}
+
+void ScriptWPILib::encoderRecycler(void* ptr)
+{
+    delete (Encoder*)ptr;
+
+}
+
+void* ScriptWPILib::analogChannelFactory(std::vector<std::string> params, void* data)
+{
+    uint32_t port = toUInt(params[0]);
+    AnalogChannel* temp = new AnalogChannel(port);
+    return temp;
+
+}
+
+void ScriptWPILib::analogChannelRecycler(void* ptr)
+{
+    delete (AnalogChannel*)ptr;
+
+}
+
+void* ScriptWPILib::digitalInputFactory(std::vector<std::string> params, void* data)
+{
+    uint32_t port = toUInt(params[0]);
+    DigitalInput* temp = new DigitalInput(port);
+    return temp;
+
+}
+
+void ScriptWPILib::digitalInputRecycler(void* ptr)
+{
+    delete (DigitalInput*)ptr;
+
+}
+
+void* ScriptWPILib::timerFactory(std::vector<std::string> params, void* data)
+{
+    Timer* temp = new Timer;
+    return temp;
+
+}
+
+void ScriptWPILib::timerRecycler(void* ptr)
+{
+    delete (Timer*)ptr;
+
+}
+
+void* ScriptWPILib::compressorFactory(std::vector<std::string> params, void* data)
+{
+    uint32_t port1 = toUInt(params[0]);
+    uint32_t port2 = toUInt(params[1]);
+    Compressor* temp = new Compressor(port1, port2);
+    return temp;
+
+}
+
+void ScriptWPILib::compressorRecycler(void* ptr)
+{
+    delete (Compressor*)ptr;
+
+}
+
+void* ScriptWPILib::robotDriveFactory(std::vector<std::string> params, void* data)
+{
+    std::cout << "creating a robot drive\n";
+    ScriptPackage* package = (ScriptPackage*)data;
+
+    std::vector<SpeedController*> controllers;
+
+    for(unsigned int i = 0; i < params.size(); i++)
+    {
+        GlobalProperty* property = package->getProperty(params[0]);
+        if(property == NULL)
+        {
+            std::cout << "property is null\n";
+            return NULL;
+
+        }
+        else if(property->getType() == "Victor")
+        {
+            Victor* c = (Victor*)property->getPtr();
+            controllers.push_back((SpeedController*)c);
+
+        }
+        else if(property->getType() == "Jaguar")
+        {
+            Jaguar* c = (Jaguar*)property->getPtr();
+            controllers.push_back((SpeedController*)c);
+
+        }
+        else if(property->getType() == "Talon")
+        {
+            Talon* c = (Talon*)property->getPtr();
+            controllers.push_back((SpeedController*)c);
+
+        }
+
+    }
+
+    RobotDrive* temp = NULL;
+    if(controllers.size() == 2)
+    {
+        std::cout << "two motors\n";
+        temp = new RobotDrive(controllers[0], controllers[1]);
+        return temp;
+
+    }
+    else if(controllers.size() == 4)
+    {
+        std::cout << "four motors\n";
+        temp = new RobotDrive(controllers[0], controllers[1], controllers[2], controllers[3]);
+        return temp;
+
+    }
+
+    std::cout << "returning null\n";
+    return NULL;
+
+}
+
+void ScriptWPILib::robotDriveRecycler(void* ptr)
+{
+    delete (RobotDrive*)ptr;
 
 }

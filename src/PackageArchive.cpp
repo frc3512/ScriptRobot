@@ -20,7 +20,7 @@ PackageArchive::Error PackageArchive::read(std::string path)
 
     if(!file)
     {
-        return CouldNotOpenFile;
+        return PackageArchive::CouldNotOpenFile;
 
     }
 
@@ -34,7 +34,7 @@ PackageArchive::Error PackageArchive::read(std::string path)
 
     if(std::string(headerBuffer) != header)
     {
-        return NotAPackageArchive;
+        return PackageArchive::NotAPackageArchive;
 
     }
 
@@ -56,7 +56,7 @@ PackageArchive::Error PackageArchive::read(std::string path)
 
     }
 
-    return NoError;
+    return PackageArchive::NoError;
 
 }
 
@@ -64,7 +64,7 @@ PackageArchive::Error PackageArchive::write(std::string path)
 {
     if(!(m_sections.size() > 0))
     {
-        return NothingToWrite;
+        return PackageArchive::NothingToWrite;
 
     }
 
@@ -73,7 +73,7 @@ PackageArchive::Error PackageArchive::write(std::string path)
 
     if(!file)
     {
-        return CouldNotOpenFile;
+        return PackageArchive::CouldNotOpenFile;
 
     }
 
@@ -94,7 +94,7 @@ PackageArchive::Error PackageArchive::write(std::string path)
 
     }
 
-    return NoError;
+    return PackageArchive::NoError;
 
 }
 
@@ -170,7 +170,7 @@ void PackageArchive::clear()
 
 }
 
-uint32_t readUInt(std::fstream& file)
+uint32_t PackageArchive::readUInt(std::fstream& file)
 {
     uint32_t num = 0;
     file.read((char*)&num, sizeof(unsigned int));
@@ -180,7 +180,7 @@ uint32_t readUInt(std::fstream& file)
 
 }
 
-std::string readStr(std::fstream& file, uint32_t size)
+std::string PackageArchive::readStr(std::fstream& file, uint32_t size)
 {
     if(size == 0)
     {

@@ -1,40 +1,22 @@
 #ifndef SCRIPTWPILIB_H_
 #define SCRIPTWPILIB_H_
 
-#include <angelscript.h>
-#include <string>
+#include "ScriptPlugin.h"
+#include "GlobalProperty.h"
+#include <vector>
 
-#ifdef FAKEWPILIB
+#if defined _WIN32 || UNIX
+//TODO: change the name of this include
 #include "FakeWPILib/FakeWPILib.h"
+#include <assert.h>
+#include <stdint.h>
 #else
 #include "ScriptRobot.h"
 #include <WPILib.h>
+#include "add_on/vxw_assert.h"
+#include <types/vxTypes.h>
 #endif
 
-/*
-Angelscript WPILib bindings for:
-
-handles are c++ object types that can not be created in the script program
-but must be instead passed in through a call to a angelscript c++ bound function
-or hook
-
-objects are c++ object types that can be initialized in the script program
-
-Joystick handle
-Servo handle
-Relay handle
-Solenoid handle
-DoubleSolenoid handle
-Victor handle
-Jaguar handle
-Talon handle
-Robot handle
-
-Timer object
-
-*/
-
-//wraps all the wpilib drivers stations into one useable class
 class asDriverStation
 {
 public:
@@ -86,14 +68,76 @@ public:
 
 };
 
-void registerWPILib(asIScriptEngine* engine);
+class ScriptWPILib : public ScriptPlugin
+{
+public:
+    ScriptWPILib();
 
-void registerJoystick(asIScriptEngine* engine);
-void registerControllers(asIScriptEngine* engine);
-void registerSensors(asIScriptEngine* engine);
-void registerTimer(asIScriptEngine* engine);
-void registerDriverStation(asIScriptEngine* engine);
-void registerCompressor(asIScriptEngine* engine);
-void registerRobotDrive(asIScriptEngine* engine);
+    std::string getName();
+
+    static void registerWPILib(asIScriptEngine* engine);
+    static void registerJoystick(asIScriptEngine* engine);
+    static void registerControllers(asIScriptEngine* engine);
+    static void registerSensors(asIScriptEngine* engine);
+    static void registerTimer(asIScriptEngine* engine);
+    static void registerDriverStation(asIScriptEngine* engine);
+    static void registerCompressor(asIScriptEngine* engine);
+    static void registerRobotDrive(asIScriptEngine* engine);
+
+    static void* joystickFactory(std::vector<std::string> params, void* data);
+    static void joystickRecycler(void* ptr);
+
+    static void* servoFactory(std::vector<std::string> params, void* data);
+    static void servoRecycler(void* ptr);
+
+    static void* relayFactory(std::vector<std::string> params, void* data);
+    static void relayRecycler(void* ptr);
+
+    static void* solenoidFactory(std::vector<std::string> params, void* data);
+    static void solenoidRecycler(void* ptr);
+
+    static void* doubleSolenoidFactory(std::vector<std::string> params, void* data);
+    static void doubleSolenoidRecycler(void* ptr);
+
+    static void* victorFactory(std::vector<std::string> params, void* data);
+    static void victorRecycler(void* ptr);
+
+    static void* jaguarFactory(std::vector<std::string> params, void* data);
+    static void jaguarRecycler(void* ptr);
+
+    static void* talonFactory(std::vector<std::string> params, void* data);
+    static void talonRecycler(void* ptr);
+
+    static void* counterFactory(std::vector<std::string> params, void* data);
+    static void counterRecycler(void* ptr);
+
+    static void* encoderFactory(std::vector<std::string> params, void* data);
+    static void encoderRecycler(void* ptr);
+
+    static void* analogChannelFactory(std::vector<std::string> params, void* data);
+    static void analogChannelRecycler(void* ptr);
+
+    static void* digitalInputFactory(std::vector<std::string> params, void* data);
+    static void digitalInputRecycler(void* ptr);
+
+    static void* timerFactory(std::vector<std::string> params, void* data);
+    static void timerRecycler(void* ptr);
+
+    static void* compressorFactory(std::vector<std::string> params, void* data);
+    static void compressorRecycler(void* ptr);
+
+    static void* robotDriveFactory(std::vector<std::string> params, void* data);
+    static void robotDriveRecycler(void* ptr);
+
+private:
+    void onInitFactories();
+    void onInitBindings();
+
+    void onDeinitFactories();
+    void onDeinitBindings();
+
+    GlobalProperty* m_driverStation;
+
+};
 
 #endif /* SCRIPTWPILIB_H_ */

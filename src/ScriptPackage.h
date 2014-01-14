@@ -3,11 +3,15 @@
 
 #include <list>
 #include <string>
+#include <string.h>
 #include <angelscript.h>
 
-#include "PackageSection.h"
+#include "PackageArchive.h"
 #include "ScriptRoutine.h"
+#include "PropertyFactory.h"
 #include "GlobalProperty.h"
+
+#include "ScriptPlugin.h"
 
 /**ScriptPackage class.
  * The ScriptPackage class loads and writes ScriptPackage files (.scpkg)
@@ -41,16 +45,14 @@ public:
     typedef enum Error
     {
         NoError = 0, ///< The ScriptPackage is ready for use.
-        NotLoaded = -1, ///< The ScriptPackage hasn't been loaded yet.
-        NotBuilt = -2, ///< The ScriptPackage hasn't been built yet.
-        EngineIsNull = -3, ///< The Engine used to build was null.
-        CouldNotOpenFile = -4, ///< A file path couldn't be opened.
-        NotAScriptPackage = -5, ///< The file loaded wasn't a ScriptPackage.
-        ErrorParsingConfig = -6, ///< There was an error while parsing a config.
-        MissingProjectConfig = -7, ///< project.cfg is missing.
-        MissingRobotConfig = -8, ///< robot.cfg is missing.
-        CouldNotRegisterProperty = -10, ///< There was an error while registering a property.
-        CouldNotBuildScript = -9, ///< There was an error while building a script.
+        NotRead = -1,
+        NotLoaded = -2, ///< The ScriptPackage hasn't been loaded yet.
+        NotBuilt = -3, ///< The ScriptPackage hasn't been built yet.
+        EngineIsNull = -4, ///< The Engine used to build was null.
+        ConfigError = -5, ///< There was an error while parsing a config.
+        CouldNotRegisterProperty = -6, ///< There was an error while registering a property.
+        CouldNotBuildScript = -7, ///< There was an error while building a script.
+        ArchiveError = -8
 
     } Error;
 
@@ -71,6 +73,10 @@ public:
      */
     bool isValid();
 
+    ScriptPackage::Error read(std::string path);
+
+    void clear();
+
     /**Loads a ScriptPackage from the path.
      * Loads a .scpkg file into memory and prepares the ScriptPackage
      * to be built. If the ScriptPackage is unsuccessfully loaded unload()
@@ -79,7 +85,7 @@ public:
      * @param path the full path to a .scpkg file.
      * @return ScriptPackage::Error::NotBuilt on success.
      */
-    ScriptPackage::Error load(std::string path);
+    ScriptPackage::Error load();
 
     /**Unloads a ScriptPackage from memory.
      * Calls release() on the ScriptPackage releasing all
@@ -122,16 +128,6 @@ public:
      */
     static std::string addExstension(std::string path);
 
-    /**Returns the project config file as a string.
-     * @return the project config file as a string.
-     */
-    std::string getProjectConfig();
-
-    /**Returns the robot config file as a string.
-     * @return the robot config file as a string.
-     */
-    std::string getRobotConfig();
-
     /**Returns true if the file name ends in .as
      * @param param the name of a file to test.
      * @return true if the file name ends in .as
@@ -162,6 +158,8 @@ public:
      * @return NULL if the section didn't exist.
      */
     PackageSection* getSection(std::string name);
+
+    void addRoutine(std::string name, std::vector<std::string> params);
 
     /**Adds a routine to a ScriptPakcage.
      * If the routine already existed it is overwritten.
@@ -229,6 +227,12 @@ public:
      */
     GlobalProperty* getProperty(std::string name);
 
+    void addPlugin(ScriptPlugin* plugin);
+
+    void remPlugin(std::string name);
+
+    ScriptPlugin* getPlugin(std::string name);
+
 private:
     /**Sets a ScriptPackages' error.
      * @param error the ScriptPackage::Error.
@@ -239,20 +243,16 @@ private:
     std::string m_lastErrorMessage; ///< The last error message set.
     ScriptPackage::Error m_lastError; ///< The last error set.
 
-    std::string m_path; ///< The path to the current .scpkg file
-
-    std::list<PackageSection*> m_sections; ///< All sections loaded from the .scpkg file.
+    PackageArchive m_archive;
 
     asIScriptEngine* m_engine; ///< The engine used to build the ScriptPackage.
-
-    std::string m_defaultDisabledRoutine; ///< The default disabled routine.
-    std::string m_defaultAutonomousRoutine; ///< The default autonomous routine.
-    std::string m_defaultOperatorControlRoutine; ///< The default operator control routine.
-    std::string m_defaultTestRoutine; ///< The default test routine.
 
     ScriptRoutine* m_initRoutine; ///< The robot init routine.
 
     std::list<ScriptRoutine*> m_routines; ///< All routines loaded from project.cfg.
+
+    std::list<ScriptPlugin*> m_plugins;
+
     std::list<GlobalProperty*> m_properties; ///< All global properties loaded from .cfg files.
 
 };

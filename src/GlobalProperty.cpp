@@ -27,7 +27,7 @@ void GlobalProperty::setup(std::string definition, std::string type, std::string
 
 }
 
-bool GlobalProperty::registerProperty(asIScriptEngine* engine)
+bool GlobalProperty::registerProperty(asIScriptEngine* engine, bool configGroup)
 {
     if(engine == NULL || m_definition == "" || m_type == "" || m_name == "" || m_ptr == NULL)
     {
@@ -36,11 +36,20 @@ bool GlobalProperty::registerProperty(asIScriptEngine* engine)
     }
 
     m_engine = engine;
-    m_engine->BeginConfigGroup(m_name.c_str());
+
+    if(configGroup)
+    {
+        m_engine->BeginConfigGroup(m_name.c_str());
+
+    }
 
     int error = m_engine->RegisterGlobalProperty((m_type + " " + m_name).c_str(), m_ptr);
 
-    m_engine->EndConfigGroup();
+    if(configGroup)
+    {
+        m_engine->EndConfigGroup();
+
+    }
 
     if(error < 0)
     {
