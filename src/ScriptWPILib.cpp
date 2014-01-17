@@ -696,6 +696,7 @@ void* ScriptWPILib::robotDriveFactory(std::vector<std::string> params, void* dat
         std::cout << "two motors\n";
         temp = new RobotDrive(controllers[0], controllers[1]);
        	temp->SetExpiration(1);
+	temp->SetSafetyEnabled(false);
 	
        	return temp;
 
@@ -705,6 +706,7 @@ void* ScriptWPILib::robotDriveFactory(std::vector<std::string> params, void* dat
         std::cout << "four motors\n";
         temp = new RobotDrive(controllers[0], controllers[1], controllers[2], controllers[3]);
         temp->SetExpiration(1);
+	temp->SetSafetyEnabled(false);
 
         return temp;
 

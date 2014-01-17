@@ -100,13 +100,14 @@ void ScriptRobot::load(std::string path)
     temp->load(path);
     if(temp->getError() != ScriptPackage::NotBuilt)
     {
-        std::cout << "could not load error: " << temp->getError << "\n" << std::flush;
+        std::cout << "could not load error: " << temp->getError() << "\n" << std::flush;
         delete temp;
         reloading = false;
         return;
 
     }
 
+    m_ctx->Release();
     if(m_package != NULL)
     {
         m_package->unload();
@@ -114,7 +115,8 @@ void ScriptRobot::load(std::string path)
     }
 
     temp->build(m_engine);
-    if(!temp->isValid())
+    m_ctx = m_engine->get()->CreateContext();
+    if(temp->getError() != ScriptPackage::NoError)
     {
         std::cout << "error while building: " << temp->getError() << "\n" << std::flush;
         delete temp;
@@ -170,7 +172,7 @@ bool ScriptRobot::isReloading()
 
 }
 
-asIScriptEngine* ScriptRobot::getEngine()
+ScriptEngine* ScriptRobot::getEngine()
 {
     return m_engine;
 

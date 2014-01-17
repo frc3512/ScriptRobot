@@ -23,7 +23,7 @@ public:
     void unload();
     bool isReloading();
 
-    asIScriptEngine* getEngine();
+    ScriptEngine* getEngine();
     ScriptPackage* getPackage();
 
     void setDisabledRoutine(std::string name);

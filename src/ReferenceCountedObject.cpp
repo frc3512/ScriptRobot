@@ -23,7 +23,7 @@ void ReferenceCountedObject::remRef()
 
 }
 
-unsigned int ReferenceCountedObject::references()
+uint32_t ReferenceCountedObject::references()
 {
     return m_references;
 

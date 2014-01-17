@@ -211,6 +211,8 @@ void ScriptPackage::unload()
 
     }
 
+    m_engine->get()->GarbageCollect(asGC_FULL_CYCLE | asGC_DESTROY_GARBAGE);
+
     while(!m_properties.empty())
     {
         m_engine->cleanProperty((*m_properties.begin()));

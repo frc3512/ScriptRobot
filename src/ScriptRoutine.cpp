@@ -187,7 +187,7 @@ bool ScriptRoutine::addHookFromModule(asIScriptModule* module)
 
 }
 
-unsigned int ScriptRoutine::getNumOfHooks()
+uint32_t ScriptRoutine::getNumOfHooks()
 {
     return m_hooks.size();
 
