@@ -5,12 +5,11 @@
 #include "GlobalProperty.h"
 #include <vector>
 
-#if defined _WIN32 || UNIX
-//TODO: change the name of this include
-#include "FakeWPILib/FakeWPILib.h"
+#if defined _WIN32 || __linux__
+#include "OfflineWPILib/OfflineWPILib.h"
 #include <assert.h>
 #include <stdint.h>
-#else
+#elif defined __VXWORKS__
 #include "ScriptRobot.h"
 #include <WPILib.h>
 #include "add_on/vxw_assert.h"
@@ -73,6 +72,8 @@ class ScriptWPILib : public ScriptPlugin
 public:
     ScriptWPILib();
 
+    ~ScriptWPILib();
+
     std::string getName();
 
     static void registerWPILib(asIScriptEngine* engine);
@@ -134,11 +135,7 @@ public:
     static void robotDriveRecycler(void* ptr);
 
 private:
-    void onInitFactories();
-    void onInitBindings();
-
-    void onDeinitFactories();
-    void onDeinitBindings();
+    void onInit();
 
     GlobalProperty* m_driverStation;
 

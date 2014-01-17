@@ -3,6 +3,7 @@
 
 #include <RobotBase.h>
 #include <angelscript.h>
+#include "ScriptEngine.h"
 
 #include "ScriptPackage.h"
 
@@ -40,10 +41,8 @@ public:
     static void print(std::string msg);
 
 protected:
-    void setup(ScriptPackage* package);
-
     bool reloading; ///< reloading
-    asIScriptEngine* m_engine; ///< Angelscript engine.
+    ScriptEngine* m_engine; ///< Angelscript engine.
     asIScriptContext* m_ctx; ///< Script context.
 
     ScriptPackage* m_package; ///< Current package loaded.

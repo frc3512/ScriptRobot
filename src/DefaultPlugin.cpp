@@ -13,37 +13,27 @@ DefaultPlugin::DefaultPlugin()
 
 }
 
-void DefaultPlugin::onInitFactories()
+DefaultPlugin::~DefaultPlugin()
 {
+
+}
+
+void DefaultPlugin::onInit()
+{
+    RegisterScriptArray(m_engine->get(), true);
+    RegisterStdString(m_engine->get());
+    RegisterScriptDictionary_Generic(m_engine->get());
+    RegisterScriptMath(m_engine->get());
+    registerConvertString(m_engine->get());
+    registerConvertUnits(m_engine->get());
+
+    m_engine->get()->RegisterGlobalFunction("void print(string)", asFUNCTION(DefaultPlugin::print), asCALL_CDECL);
+
     m_factory->add(new FactoryInfo("int", intFactory, intRecycler, false, 1, false));
     m_factory->add(new FactoryInfo("uint", uintFactory, uintRecycler, false, 1, false));
     m_factory->add(new FactoryInfo("float", floatFactory, floatRecycler, false, 1, false));
     m_factory->add(new FactoryInfo("string", stringFactory, stringRecycler, false, 1, false));
     m_factory->add(new FactoryInfo("bool", boolFactory, boolRecycler, false, 1, false));
-
-}
-
-void DefaultPlugin::onInitBindings()
-{
-    m_engine->SetMessageCallback(asFUNCTION(DefaultPlugin::messageCallback), 0, asCALL_CDECL);
-    RegisterScriptArray(m_engine, true);
-    RegisterStdString(m_engine);
-    RegisterScriptDictionary_Generic(m_engine);
-    RegisterScriptMath(m_engine);
-    registerConvertString(m_engine);
-    registerConvertUnits(m_engine);
-
-    m_engine->RegisterGlobalFunction("void print(string)", asFUNCTION(DefaultPlugin::print), asCALL_CDECL);
-
-}
-
-void DefaultPlugin::onDeinitFactories()
-{
-
-}
-
-void DefaultPlugin::onDeinitBindings()
-{
 
 }
 
@@ -55,13 +45,13 @@ std::string DefaultPlugin::getName()
 
 void* DefaultPlugin::intFactory(std::vector<std::string>params, void* data)
 {
-    return new int(toInt(params[0]));
+    return new int32_t(toInt(params[0]));
 
 }
 
 void DefaultPlugin::intRecycler(void* ptr)
 {
-    delete (int*)ptr;
+    delete (int32_t*)ptr;
 
 }
 

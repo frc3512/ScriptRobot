@@ -1,4 +1,5 @@
 #include "GlobalProperty.h"
+#include <iostream>
 
 GlobalProperty::GlobalProperty()
 {
@@ -16,10 +17,10 @@ GlobalProperty::~GlobalProperty()
 
 void GlobalProperty::setup(std::string definition, std::string type, std::string name, void* ptr)
 {
-    if(m_definition == "" && m_typet == "" && m_name == "" && m_ptr == NULL)
+    if(m_definition == "" && m_propertyType == "" && m_name == "" && m_ptr == NULL)
     {
         m_definition = definition;
-        m_typet = type;
+        m_propertyType = type;
         m_name = name;
         m_ptr = ptr;
 
@@ -27,37 +28,38 @@ void GlobalProperty::setup(std::string definition, std::string type, std::string
 
 }
 
-bool GlobalProperty::registerProperty(asIScriptEngine* engine, bool configGroup)
+bool GlobalProperty::registerProperty(ScriptEngine* engine)
 {
-    if(engine == NULL || m_definition == "" || m_typet == "" || m_name == "" || m_ptr == NULL)
+    //check if all the values have been setup and the property is ready to be registered.
+    if(engine == NULL || m_definition == "" || m_propertyType == "" || m_name == "" || m_ptr == NULL)
     {
         return false;
 
     }
 
     m_engine = engine;
+    m_engine->addRef();
 
-    if(configGroup)
+    if(m_engine->startGroup(m_name) < 0)
     {
-        m_engine->BeginConfigGroup(m_name.c_str());
-
-    }
-
-    int error = m_engine->RegisterGlobalProperty((m_typet + " " + m_name).c_str(), m_ptr);
-
-    if(configGroup)
-    {
-        m_engine->EndConfigGroup();
-
-    }
-
-    if(error < 0)
-    {
+        m_engine->endGroup();
         release();
         return false;
 
     }
 
+
+    int error = m_engine->get()->RegisterGlobalProperty((m_propertyType + " " + m_name).c_str(), m_ptr);
+
+    if(error < 0)
+    {
+        m_engine->endGroup();
+        release();
+        return false;
+
+    }
+
+    m_engine->endGroup();
     return true;
 
 }
@@ -70,7 +72,14 @@ void GlobalProperty::release()
 
     }
 
-    m_engine->RemoveConfigGroup(m_name.c_str());
+    int32_t error = m_engine->releaseGroup(m_name);
+    if(error < 0)
+    {
+        std::cout << "could not remove config group for: " << m_name << " error: " << error << "\n";
+
+    }
+
+    m_engine->remRef();
     m_engine = NULL;
 
 }
@@ -89,7 +98,7 @@ std::string GlobalProperty::getDefinition()
 
 std::string GlobalProperty::getType()
 {
-    return m_typet;
+    return m_propertyType;
 
 }
 

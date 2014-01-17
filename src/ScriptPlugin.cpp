@@ -4,99 +4,45 @@ ScriptPlugin::ScriptPlugin()
 {
     m_engine = NULL;
     m_factory = NULL;
-    factoriesInitialized = false;
-    bindingsInitialized = false;
 
 }
 
 ScriptPlugin::~ScriptPlugin()
 {
-    deinitFactories();
-    deinitBindings();
+
 
 }
 
-void ScriptPlugin::initFactories()
+void ScriptPlugin::init(ScriptEngine* engine)
 {
-    deinitFactories();
+    if(engine == NULL || m_engine != NULL)
+    {
+        return;
+
+    }
+
+    m_engine = engine;
+    m_engine->addRef();
 
     m_factory = new PropertyFactory;
 
-    onInitFactories();
+    m_engine->startGroup(getName());
 
-    factoriesInitialized = true;
+    onInit();
 
-}
-
-void ScriptPlugin::initBindings(asIScriptEngine* engine)
-{
-    if(engine == NULL)
-    {
-        return;
-
-    }
-
-    deinitBindings();
-    m_engine = engine;
-
-    m_engine->BeginConfigGroup(getName().c_str());
-
-    onInitBindings();
-
-    m_engine->EndConfigGroup();
-
-    bindingsInitialized = true;
+    m_engine->endGroup();
 
 }
 
-void ScriptPlugin::deinitFactories()
+void ScriptPlugin::deinit()
 {
-    deinitBindings();
-
-    if(m_factory == NULL)
-    {
-        return;
-
-    }
-
-    onDeinitFactories();
-
+    m_engine->releaseGroup(getName());
+    m_engine->remRef();
     delete m_factory;
 
-    factoriesInitialized = false;
-
 }
 
-void ScriptPlugin::deinitBindings()
-{
-    if(m_engine == NULL)
-    {
-        return;
-
-    }
-
-    onDeinitBindings();
-
-    m_engine->RemoveConfigGroup(getName().c_str());
-    m_engine = NULL;
-
-    bindingsInitialized = false;
-
-}
-
-bool ScriptPlugin::areFactoriesInitialized()
-{
-    return factoriesInitialized;
-
-}
-
-bool ScriptPlugin::areBindingsInitialized()
-{
-    return bindingsInitialized;
-
-}
-
-bool ScriptPlugin::hasType(std::string type)
+bool ScriptPlugin::has(std::string type)
 {
     return m_factory->has(type);
 

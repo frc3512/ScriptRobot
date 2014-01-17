@@ -13,6 +13,7 @@ PropertyFactory::~PropertyFactory()
         while(!m_factories.empty())
         {
             delete (FactoryInfo*)(*m_factories.begin());
+            m_factories.erase(m_factories.begin());
 
         }
 

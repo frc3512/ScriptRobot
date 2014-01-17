@@ -1,152 +1,89 @@
-#include <iostream>
 #include "ScriptPackage.h"
+#include "ScriptRoutine.h"
+#include <iostream>
 #include "Config.h"
-#include "Convert/convertstring.h"
-#ifdef FAKEWPILIB
-#include "FakeWPILib/FakeWPILib.h"
-#else
-#include <WPILib.h>
-#endif
-
-#ifdef _WIN32
-#include <winsock2.h>
-#elif UNIX
-#include <netinet/in.h>
-#endif
 
 ScriptPackage::ScriptPackage()
 {
+    setError(NotLoaded);
+
     m_engine = NULL;
-    m_initRoutine = NULL;
-    setError(ScriptPackage::NotRead, "package just initialized");
 
 }
 
 ScriptPackage::~ScriptPackage()
 {
-    clear();
     unload();
-
-}
-
-ScriptPackage::Error ScriptPackage::getLastError()
-{
-    return m_lastError;
-
-}
-
-std::string ScriptPackage::getLastErrorMessage()
-{
-    return m_lastErrorMessage;
 
 }
 
 bool ScriptPackage::isValid()
 {
-    return getLastError() == ScriptPackage::NoError;
+    return getError() == ScriptPackage::NoError;
 
 }
 
-ScriptPackage::Error ScriptPackage::read(std::string path)
+ScriptPackage::Error ScriptPackage::getError()
 {
-    if(isValid())
-    {
-        return getLastError();
-
-    }
-
-    clear();
-
-    path = addExstension(path);
-
-    PackageArchive::Error error = m_archive.read(path);   
-    if(error != PackageArchive::NoError)
-    {
-        setError(ScriptPackage::ArchiveError, "Error while reading archive: " + path + "\n\terror: " + toString(error));
-        return getLastError();
-
-    }
-
-    setError(ScriptPackage::NotLoaded, "Package read, but not loaded");
-    return getLastError();
+   return m_lastError;
 
 }
 
-void ScriptPackage::clear()
+ScriptPackage::Error ScriptPackage::load(std::string path)
 {
-    unload();
-    m_archive.clear();
-
-std::cout << "clearing\n";
-
-    while(!m_plugins.empty())
+    PackageArchive::Error error = m_archive.read(path);
+    if(error < 0)
     {
-        delete (*m_plugins.begin());
-	m_plugins.erase(m_plugins.begin());
+        setError(ScriptPackage::ReadError);
+        return getError();
 
     }
 
-    if(getLastError() == ScriptPackage::NoError)
-    {
-        setError(ScriptPackage::NotRead, "Package not read");
-
-    }
+    setError(ScriptPackage::NotBuilt);
+    return getError();
 
 }
 
-ScriptPackage::Error ScriptPackage::load()
+std::string ScriptPackage::getPath()
 {
-    if(isValid() || getLastError() == ScriptPackage::NotRead)
+    return m_archive.getPath();
+
+}
+
+ScriptPackage::Error ScriptPackage::build(ScriptEngine* engine)
+{
+    if(engine == NULL)
     {
-        std::cout << "returning here\n";
-        return getLastError();
+        setError(ScriptPackage::NullEngine);
+        return getError();
 
     }
 
-    unload();
-std::cout << "initing plugin factories\n";
+    m_engine = engine;
+    m_engine->addRef();
 
-    {//init all plugin factories
-std::cout << "plugins: " << m_plugins.size() << "\n";
-        std::list<ScriptPlugin*>::iterator it;
-        for(it = m_plugins.begin(); it != m_plugins.end(); it++)
-        {
-            if((*it) != NULL && !(*it)->areFactoriesInitialized())
-            {
-		std::cout << "initing plugin: " << (*it)->getName() << "\n";
-                (*it)->initFactories();
+    {
+        std::list<PackageSection> sections = m_archive.getSections();
+        std::list<PackageSection>::iterator it;
 
-            }
-
-        }
-
-    }
-
-std::cout << "setting up all routines and properties\n";
-
-    {//setup all routines and add all properties
-        std::list<PackageSection*> sections = m_archive.getSections();
-        std::list<PackageSection*>::iterator it;
-
-        m_initRoutine = new ScriptRoutine;
-        m_initRoutine->setup("init", ScriptRoutine::Init);
+        m_initRoutine.setup("init", "void onInit(Robot@)");
 
         for(it = sections.begin(); it != sections.end(); it++)
         {
-            if(ScriptPackage::isScript((*it)->getName()))
+            if(ScriptPackage::isScript(it->getName()))
             {
-                m_initRoutine->addScript((*it)->getName());
+                m_initRoutine.addScript(it->getName());
 
             }
-            else if(isConfig((*it)->getName()))
+            else if(isConfig(it->getName()))
             {
-                //TODO: redo the config to be more robust and not create types
                 Config cfg;
-                Config::ParseError error = cfg.parse((*it)->getFile());
+                Config::ParseError error = cfg.parse(it->getFile());
                 if(error != Config::NoError)
                 {
-                    setError(ScriptPackage::ConfigError, "Error while parsing config: " + (*it)->getName() + "\n\terror: " + toString(error));
-                    return getLastError();
+                    unload();
+                    setError(ScriptPackage::ConfigError);
+                    return getError();
 
                 }
 
@@ -164,28 +101,18 @@ std::cout << "setting up all routines and properties\n";
                     }
                     else
                     {
-                        void* ptr = NULL;
-
-                        std::list<ScriptPlugin*>::iterator it2;
-                        for(it2 = m_plugins.begin(); it2 != m_plugins.end(); it2++)
+                        GlobalProperty* property = m_engine->addProperty(definition, type, name, params, this);
+                        if(property != NULL)
                         {
-                            if((*it2)->hasType(type))
-                            {
-                                ptr = (*it2)->create(type, params, this);
-                                break;
-
-                            }
-
-                        }
-
-                        if(ptr == NULL)
-                        {
-                            continue;
+                            std::cout << "added property: " << property->getName() << "\n";
+                            m_properties.push_back(property);
 
                         }
                         else
                         {
-                            addProperty(definition, type, name, ptr);
+                            unload();
+                            setError(ScriptPackage::ConfigError);
+                            return getError();
 
                         }
 
@@ -197,283 +124,52 @@ std::cout << "setting up all routines and properties\n";
 
         }
 
-    }
-
-std::cout << "finished loading\n";
-
-    setError(ScriptPackage::NotBuilt, "Package loaded, but not built");
-    return getLastError();
-
-}
-
-void ScriptPackage::unload()
-{
-    release();
-
-    while(!m_routines.empty())
-    {
-        delete (*m_routines.begin());
-        m_routines.erase(m_routines.begin());
-
-    }
-
-    delete m_initRoutine;
-    m_initRoutine = NULL;
-
-    while(!m_properties.empty())
-    {
-        std::string type = (*m_properties.begin())->getType();
-        void* ptr = (*m_properties.begin())->getPtr();
-
-        std::list<ScriptPlugin*>::iterator it;
-        for(it = m_plugins.begin(); it != m_plugins.end(); it++)
-        {
-            if((*it)->hasType(type))
-            {
-                (*it)->clean(type, ptr);
-
-            }
-
-        }
-
-        if(ptr != NULL)
-        {
-            std::cout << "ScriptPackage::unload() unkown type while cleaning\n";
-
-        }
-
-        delete (GlobalProperty*)(*m_properties.begin());
-        m_properties.erase(m_properties.begin());
-
-    }
-
-    if(getLastError() == ScriptPackage::NoError)
-    {
-        setError(ScriptPackage::NotLoaded, "Package not loaded");
-
-    }
-
-}
-
-ScriptPackage::Error ScriptPackage::build(asIScriptEngine* engine)
-{
-    if(isValid())
-    {
-        return getLastError();
-
-    }
-    else if(getLastError() != ScriptPackage::NotBuilt)
-    {
-        unload();
-        return getLastError();
-
-    }
-
-    if(engine == NULL)
-    {
-        setError(ScriptPackage::EngineIsNull, "The engine used to build was null");
-        release();
-        return getLastError();
-
-    }
-
-    m_engine = engine;
-
-    {//register all plugins
-        std::list<ScriptPlugin*>::iterator it;
-        for(it = m_plugins.begin(); it != m_plugins.end(); it++)
-        {
-            if(!(*it)->areBindingsInitialized())
-            {
-                std::cout << "binding plugin: " << (*it)->getName() << "\n";
-                (*it)->initBindings(m_engine);
-
-            }
-
-        }
-
-    }
-
-    std::cout << "finished binding plugins\n";
-
-    {//Register all global properties
-        std::list<GlobalProperty*>::iterator it;
-        for(it = m_properties.begin(); it != m_properties.end(); it++)
-        {
-            if(!(*it)->registerProperty(m_engine))
-            {
-                setError(ScriptPackage::CouldNotRegisterProperty, "Failed to register property: " + (*it)->getType() + " " + (*it)->getName());
-                release();
-                return getLastError();
-
-            }
-
-        }
-
-    }
-
-    std::cout << "finished binding global properties\n";
-
-    {//Build all script sections
-        std::list<PackageSection*> sections = m_archive.getSections();
-        std::list<PackageSection*>::iterator it;
-
         for(it = sections.begin(); it != sections.end(); it++)
         {
-            PackageSection* section = (*it);
-            if(ScriptPackage::isScript(section->getName()))
+            PackageSection section = *it;
+            if(ScriptPackage::isScript(section.getName()))
             {
-                asIScriptModule* module = m_engine->GetModule(section->getName().c_str());
+                asIScriptModule* module = m_engine->get()->GetModule(section.getName().c_str());
                 if(module != NULL)
                 {
                     module->Discard();
 
                 }
 
-                module = m_engine->GetModule(section->getName().c_str(), asGM_ALWAYS_CREATE);
-                if(module->AddScriptSection(section->getName().c_str(), section->getFile().c_str()) < 0)
+                module = m_engine->get()->GetModule(section.getName().c_str(), asGM_ALWAYS_CREATE);
+                if(module->AddScriptSection(section.getName().c_str(), section.getFile().c_str()) < 0)
                 {
-                    setError(ScriptPackage::CouldNotBuildScript, "Failed to add script section to the module for: " + section->getName());
-                    release();
-                    return getLastError();
+                    unload();
+                    setError(ScriptPackage::FailedBuild);
+                    return getError();
 
                 }
 
                 if(module->Build() < 0)
                 {
-                    setError(ScriptPackage::CouldNotBuildScript, "Failed to build script: " + section->getName());
-                    release();
-                    return getLastError();
+                    unload();
+                    setError(ScriptPackage::FailedBuild);
+                    return getError();
 
                 }
 
             }
 
         }
-
     }
 
-    std::cout << "finished building scripts\n";
-
-    {//Fetch all function pointers for routines.
-        m_initRoutine->loadHooksFromEngine(m_engine);
-
-        std::list<ScriptRoutine*>::iterator it;
+    {
+        std::list<ScriptRoutine>::iterator it;
         for(it = m_routines.begin(); it != m_routines.end(); it++)
         {
-            (*it)->loadHooksFromEngine(m_engine);
+            it->loadHooksFromEngine(m_engine->get());
 
         }
 
     }
 
-    std::cout << "loaded routines\n";
-
-    setError(ScriptPackage::NoError, "There was no error while building");
-    return getLastError();
-
-}
-
-void ScriptPackage::release()
-{
-    if(m_engine == NULL)
-    {
-        return;
-
-    }
-
-    m_initRoutine->release();
-
-    {//Release all angelscript function pointers from the ScriptRoutines.
-        std::list<ScriptRoutine*>::iterator it;
-        for(it = m_routines.begin(); it != m_routines.end(); it++)
-        {
-            (*it)->release();
-
-        }
-
-    }
-
-    {//Release all angelscript modules created by this ScriptPackage.
-        std::list<PackageSection*> sections = m_archive.getSections();
-        std::list<PackageSection*>::iterator it;
-
-        for(it = sections.begin(); it != sections.end(); it++)
-        {
-            asIScriptModule* module = m_engine->GetModule((*it)->getName().c_str());
-            if(module != NULL)
-            {
-                module->Discard();
-
-            }
-
-        }
-
-    }
-
-    m_engine->GarbageCollect(asGC_FULL_CYCLE | asGC_DESTROY_GARBAGE);
-
-    {//Release all global properties created by Configs.
-        std::list<GlobalProperty*>::iterator it;
-        for(it = m_properties.begin(); it != m_properties.end(); it++)
-        {
-            (*it)->release();
-
-        }
-
-    }
-
-    {//release plugins
-        std::list<ScriptPlugin*>::iterator it;
-        for(it = m_plugins.begin(); it != m_plugins.end(); it++)
-        {
-            (*it)->deinitBindings();
-
-        }
-
-    }
-
-    m_engine = NULL;
-
-    if(getLastError() == ScriptPackage::NoError)
-    {
-        setError(ScriptPackage::NotBuilt, "Package not built");
-
-    }
-
-}
-
-//TODO: make this actually do things
-ScriptPackage::Error ScriptPackage::write(std::string path)
-{
-    path = addExstension(path);
-    PackageArchive::Error error = m_archive.write(path);
-    if(error != PackageArchive::NoError)
-    {
-        return ScriptPackage::ArchiveError;
-
-    }
-
-    return ScriptPackage::NoError;
-
-}
-
-std::string ScriptPackage::getPath()
-{
-    return m_archive.getPath();
-
-}
-
-//TODO: move these to some util file (FileSystem.h probably)
-std::string ScriptPackage::addExstension(std::string path)
-{
-    if(path.rfind(".scpkg") != path.size() - 6)
-    {
-        path += ".scpkg";
-
-    }
-
-    return path;
+    setError(ScriptPackage::NoError);
+    return getError();
 
 }
 
@@ -489,46 +185,67 @@ bool ScriptPackage::isConfig(std::string name)
 
 }
 
-void ScriptPackage::addSection(std::string name, std::string file)
+void ScriptPackage::unload()
 {
-    m_archive.add(name, file);
+    if(m_engine == NULL)
+    {
+        return;
 
-}
+    }
 
-void ScriptPackage::remSection(std::string name)
-{
-    m_archive.rem(name);
+    m_initRoutine.release();
+    m_routines.clear();
 
-}
+    std::list<PackageSection> sections = m_archive.getSections();
+    std::list<PackageSection>::iterator it;
 
-PackageSection* ScriptPackage::getSection(std::string name)
-{
-    return m_archive.getSection(name);
+    for(it = sections.begin(); it != sections.end(); it++)
+    {
+        asIScriptModule* module = m_engine->get()->GetModule(it->getName().c_str());
+        if(module != NULL)
+        {
+            std::cout << "discarding module: " << it->getName() << "\n";
+            module->Discard();
+
+        }
+
+    }
+
+    while(!m_properties.empty())
+    {
+        m_engine->cleanProperty((*m_properties.begin()));
+        m_properties.erase(m_properties.begin());
+
+    }
+
+    m_engine->remRef();
+    m_engine = NULL;
+    setError(ScriptPackage::NotBuilt);
 
 }
 
 void ScriptPackage::addRoutine(std::string name, std::vector<std::string> params)
 {
     std::string type = params[0];
-    ScriptRoutine::Type routineType;
+    std::string hookDecl;
     if(type == "Disabled")
     {
-       routineType = ScriptRoutine::Disabled;
+       hookDecl = "void onDisabled(Robot@)";
 
     }
     else if(type == "Autonomous")
     {
-       routineType = ScriptRoutine::Autonomous;
+        hookDecl = "void onAutonomous(Robot@)";
 
     }
     else if(type == "OperatorControl")
     {
-       routineType = ScriptRoutine::OperatorControl;
+        hookDecl = "void onOperatorControl(Robot@)";
 
     }
     else if(type == "Test")
     {
-       routineType = ScriptRoutine::Test;
+        hookDecl = "void onTest(Robot@)";
 
     }
     else
@@ -550,58 +267,38 @@ void ScriptPackage::addRoutine(std::string name, std::vector<std::string> params
 
     }
 
-    addRoutine(name, routineType, scripts);
-
-}
-
-void ScriptPackage::addRoutine(std::string name, ScriptRoutine::Type type, std::vector<std::string> scripts)
-{
-    if(isValid())
-    {
-        return;
-
-    }
-
-    ScriptRoutine* routine = new ScriptRoutine;
-    routine->setup(name, type);
-    routine->setScripts(scripts);
-
-    remRoutine(name);
+    ScriptRoutine routine;
+    routine.setup(name, hookDecl);
+    routine.setScripts(scripts);
     m_routines.push_back(routine);
 
 }
 
-void ScriptPackage::remRoutine(std::string name)
+GlobalProperty* ScriptPackage::getProperty(std::string name)
 {
-    if(isValid())
-    {
-        return;
-
-    }
-
-    std::list<ScriptRoutine*>::iterator it;
-    for(it = m_routines.begin(); it != m_routines.end(); it++)
+    std::list<GlobalProperty*>::iterator it;
+    for(it = m_properties.begin(); it != m_properties.end(); it++)
     {
         if((*it)->getName() == name)
         {
-            delete (*it);
-            m_routines.erase(it);
-            return;
+            return *it;
 
         }
 
     }
 
+    return NULL;
+
 }
 
 ScriptRoutine* ScriptPackage::getRoutine(std::string name)
 {
-    std::list<ScriptRoutine*>::iterator it;
+    std::list<ScriptRoutine>::iterator it;
     for(it = m_routines.begin(); it != m_routines.end(); it++)
     {
-        if((*it)->getName() == name)
+        if(it->getName() == name)
         {
-            return (*it);
+            return &(*it);
 
         }
 
@@ -613,7 +310,7 @@ ScriptRoutine* ScriptPackage::getRoutine(std::string name)
 
 ScriptRoutine* ScriptPackage::getInitRoutine()
 {
-    return m_initRoutine;
+    return &m_initRoutine;
 
 }
 
@@ -669,119 +366,8 @@ std::string ScriptPackage::getDefaultTestRoutine()
 
 }
 
-void ScriptPackage::addProperty(std::string definition, std::string type, std::string name, void* ptr)
-{
-    if(isValid() || ptr == NULL)
-    {
-        return;
-
-    }
-
-    GlobalProperty* property = new GlobalProperty;
-    property->setup(definition, type, name, ptr);
-
-    remProperty(name);
-    m_properties.push_back(property);
-
-}
-
-void ScriptPackage::remProperty(std::string name)
-{
-    if(isValid())
-    {
-        return;
-
-    }
-
-    std::list<GlobalProperty*>::iterator it;
-    for(it = m_properties.begin(); it != m_properties.end(); it++)
-    {
-        if((*it)->getName() == name)
-        {
-            delete (*it);
-            m_properties.erase(it);
-            return;
-
-        }
-
-    }
-
-}
-
-GlobalProperty* ScriptPackage::getProperty(std::string name)
-{
-    std::list<GlobalProperty*>::iterator it;
-    for(it = m_properties.begin(); it != m_properties.end(); it++)
-    {
-        if((*it)->getName() == name)
-        {
-            return (*it);
-
-        }
-
-    }
-
-    return NULL;
-
-}
-
-void ScriptPackage::addPlugin(ScriptPlugin* plugin)
-{
-    if(isValid() || plugin == NULL)
-    {
-        return;
-
-    }
-
-    std::cout << "added plugin: " << plugin->getName() << "\n";
-    remPlugin(plugin->getName());
-    m_plugins.push_back(plugin);
-
-}
-
-void ScriptPackage::remPlugin(std::string name)
-{
-    if(isValid())
-    {
-        return;
-
-    }
-
-    std::list<ScriptPlugin*>::iterator it;
-    for(it = m_plugins.begin(); it != m_plugins.end(); it++)
-    {
-        if((*it)->getName() == name)
-        {
-            delete (*it);
-            m_plugins.erase(it);
-            return;
-
-        }
-
-    }
-
-}
-
-ScriptPlugin* ScriptPackage::getPlugin(std::string name)
-{
-    std::list<ScriptPlugin*>::iterator it;
-    for(it = m_plugins.begin(); it != m_plugins.end(); it++)
-    {
-        if((*it)->getName() == name)
-        {
-            return (*it);
-
-        }
-
-    }
-
-    return NULL;
-
-}
-
-void ScriptPackage::setError(ScriptPackage::Error error, std::string errorMessage)
+void ScriptPackage::setError(ScriptPackage::Error error)
 {
     m_lastError = error;
-    m_lastErrorMessage = errorMessage;
 
 }

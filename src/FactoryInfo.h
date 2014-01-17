@@ -4,11 +4,9 @@
 #include <vector>
 #include <string>
 
-#ifdef _WIN32
+#if defined _WIN32 || __linux__
 #include <stdint.h>
-#elif UNIX
-#include <stdint.h>
-#elif defined __BORLANDC__ || defined __VXWORKS__
+#elif defined __VXWORKS__
 #include <types/vxTypes.h>
 #endif
 
@@ -40,7 +38,7 @@ public:
     void clean(void* ptr);
 
 private:
-    std::string m_typet;
+    std::string m_factoryType;
 
     FactoryInfo::Factory m_factory;
     FactoryInfo::Recycler m_recycler;

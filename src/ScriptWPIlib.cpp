@@ -139,8 +139,22 @@ ScriptWPILib::ScriptWPILib()
 
 }
 
-void ScriptWPILib::onInitFactories()
+ScriptWPILib::~ScriptWPILib()
 {
+    if(m_driverStation != NULL)
+    {
+        delete (asDriverStation*)m_driverStation->getPtr();
+        delete m_driverStation;
+        m_driverStation = NULL;
+
+    }
+
+}
+
+void ScriptWPILib::onInit()
+{
+    ScriptWPILib::registerWPILib(m_engine->get());
+
     m_factory->add(new FactoryInfo("Joystick", joystickFactory, joystickRecycler, false, 1, false));
     m_factory->add(new FactoryInfo("Servo", servoFactory, servoRecycler, false, 1, false));
     m_factory->add(new FactoryInfo("Relay", relayFactory, relayRecycler, false, 1, false));
@@ -161,41 +175,7 @@ void ScriptWPILib::onInitFactories()
     {
         m_driverStation = new GlobalProperty;
         m_driverStation->setup("DriverStation driverStation;", "DriverStation", "driverStation", new asDriverStation);
-
-    }
-
-}
-
-void ScriptWPILib::onInitBindings()
-{
-    ScriptWPILib::registerWPILib(m_engine);
-
-    if(m_driverStation != NULL)
-    {
-        m_driverStation->registerProperty(m_engine, false);
-
-    }
-
-}
-
-void ScriptWPILib::onDeinitFactories()
-{
-    if(m_driverStation != NULL)
-    {
-        delete (asDriverStation*)m_driverStation->getPtr();
-        delete m_driverStation;
-
-    }
-
-    m_driverStation = NULL;
-
-}
-
-void ScriptWPILib::onDeinitBindings()
-{
-    if(m_driverStation != NULL)
-    {
-        m_driverStation->release();
+        m_driverStation->registerProperty(m_engine);
 
     }
 
@@ -366,8 +346,8 @@ void ScriptWPILib::registerTimer(asIScriptEngine* engine) //TODO: fix / test thi
 {
     ///// Timer /////
     engine->RegisterObjectType("Timer", sizeof(Timer), asOBJ_VALUE);
-    engine->RegisterObjectBehaviour("Timer", asBEHAVE_CONSTRUCT, "void f()", asFUNCTION(timerConstructor), asCALL_CDECL_OBJLAST);
-    engine->RegisterObjectBehaviour("Timer", asBEHAVE_DESTRUCT, "void f()", asFUNCTION(timerDestructor), asCALL_CDECL_OBJLAST);
+    engine->RegisterObjectBehaviour("Timer", asBEHAVE_CONSTRUCT, "void f()", asFUNCTION(ScriptWPILib::timerConstructor), asCALL_CDECL_OBJLAST);
+    engine->RegisterObjectBehaviour("Timer", asBEHAVE_DESTRUCT, "void f()", asFUNCTION(ScriptWPILib::timerDestructor), asCALL_CDECL_OBJLAST);
 
     engine->RegisterObjectMethod("Timer", "float get()", asMETHOD(Timer, Get), asCALL_THISCALL);
     engine->RegisterObjectMethod("Timer", "void reset()", asMETHOD(Timer, Reset), asCALL_THISCALL);
@@ -472,6 +452,7 @@ void* ScriptWPILib::joystickFactory(std::vector<std::string> params, void* data)
 void ScriptWPILib::joystickRecycler(void* ptr)
 {
     delete (Joystick*)ptr;
+    ptr = NULL;
 
 }
 
@@ -486,6 +467,7 @@ void* ScriptWPILib::servoFactory(std::vector<std::string> params, void* data)
 void ScriptWPILib::servoRecycler(void* ptr)
 {
     delete (Servo*)ptr;
+    ptr = NULL;
 
 }
 
@@ -500,6 +482,7 @@ void* ScriptWPILib::relayFactory(std::vector<std::string> params, void* data)
 void ScriptWPILib::relayRecycler(void* ptr)
 {
     delete (Relay*)ptr;
+    ptr = NULL;
 
 }
 
@@ -514,6 +497,7 @@ void* ScriptWPILib::solenoidFactory(std::vector<std::string> params, void* data)
 void ScriptWPILib::solenoidRecycler(void* ptr)
 {
     delete (Solenoid*)ptr;
+    ptr = NULL;
 
 }
 
@@ -529,6 +513,7 @@ void* ScriptWPILib::doubleSolenoidFactory(std::vector<std::string> params, void*
 void ScriptWPILib::doubleSolenoidRecycler(void* ptr)
 {
     delete (DoubleSolenoid*)ptr;
+    ptr = NULL;
 
 }
 
@@ -543,6 +528,7 @@ void* ScriptWPILib::victorFactory(std::vector<std::string> params, void* data)
 void ScriptWPILib::victorRecycler(void* ptr)
 {
     delete (Victor*)ptr;
+    ptr = NULL;
 
 }
 
@@ -557,6 +543,7 @@ void* ScriptWPILib::jaguarFactory(std::vector<std::string> params, void* data)
 void ScriptWPILib::jaguarRecycler(void* ptr)
 {
     delete (Jaguar*)ptr;
+    ptr = NULL;
 
 }
 
@@ -571,6 +558,7 @@ void* ScriptWPILib::talonFactory(std::vector<std::string> params, void* data)
 void ScriptWPILib::talonRecycler(void* ptr)
 {
     delete (Talon*)ptr;
+    ptr = NULL;
 
 }
 
@@ -585,6 +573,7 @@ void* ScriptWPILib::counterFactory(std::vector<std::string> params, void* data)
 void ScriptWPILib::counterRecycler(void* ptr)
 {
     delete (Counter*)ptr;
+    ptr = NULL;
 
 }
 
@@ -600,6 +589,7 @@ void* ScriptWPILib::encoderFactory(std::vector<std::string> params, void* data)
 void ScriptWPILib::encoderRecycler(void* ptr)
 {
     delete (Encoder*)ptr;
+    ptr = NULL;
 
 }
 
@@ -614,6 +604,7 @@ void* ScriptWPILib::analogChannelFactory(std::vector<std::string> params, void* 
 void ScriptWPILib::analogChannelRecycler(void* ptr)
 {
     delete (AnalogChannel*)ptr;
+    ptr = NULL;
 
 }
 
@@ -628,6 +619,7 @@ void* ScriptWPILib::digitalInputFactory(std::vector<std::string> params, void* d
 void ScriptWPILib::digitalInputRecycler(void* ptr)
 {
     delete (DigitalInput*)ptr;
+    ptr = NULL;
 
 }
 
@@ -641,6 +633,7 @@ void* ScriptWPILib::timerFactory(std::vector<std::string> params, void* data)
 void ScriptWPILib::timerRecycler(void* ptr)
 {
     delete (Timer*)ptr;
+    ptr = NULL;
 
 }
 
@@ -656,6 +649,7 @@ void* ScriptWPILib::compressorFactory(std::vector<std::string> params, void* dat
 void ScriptWPILib::compressorRecycler(void* ptr)
 {
     delete (Compressor*)ptr;
+    ptr = NULL;
 
 }
 
@@ -703,14 +697,14 @@ void* ScriptWPILib::robotDriveFactory(std::vector<std::string> params, void* dat
         temp = new RobotDrive(controllers[0], controllers[1]);
        	temp->SetExpiration(1);
 	
-	return temp;
+       	return temp;
 
     }
     else if(controllers.size() == 4)
     {
         std::cout << "four motors\n";
         temp = new RobotDrive(controllers[0], controllers[1], controllers[2], controllers[3]);
-	temp->SetExpiration(1);
+        temp->SetExpiration(1);
 
         return temp;
 
@@ -724,5 +718,6 @@ void* ScriptWPILib::robotDriveFactory(std::vector<std::string> params, void* dat
 void ScriptWPILib::robotDriveRecycler(void* ptr)
 {
     delete (RobotDrive*)ptr;
+    ptr = NULL;
 
 }

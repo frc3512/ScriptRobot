@@ -2,7 +2,7 @@
 
 ScriptRoutine::ScriptRoutine()
 {
-    m_typet = ScriptRoutine::None;
+    m_hookDecl = "";
 
 }
 
@@ -14,6 +14,7 @@ ScriptRoutine::~ScriptRoutine()
 
 void ScriptRoutine::release()
 {
+    m_scripts.clear();
     while(!m_hooks.empty())
     {
         (*m_hooks.begin())->Release();
@@ -23,10 +24,10 @@ void ScriptRoutine::release()
 
 }
 
-void ScriptRoutine::setup(std::string name, ScriptRoutine::Type type)
+void ScriptRoutine::setup(std::string name, std::string hookDecl)
 {
     setName(name);
-    setType(type);
+    setHookDecl(hookDecl);
 
 }
 
@@ -38,7 +39,7 @@ void ScriptRoutine::setScripts(std::vector<std::string> scripts)
 
 void ScriptRoutine::loadHooksFromEngine(asIScriptEngine* engine)
 {
-    for(unsigned int i = 0; i < getNumOfScripts(); i++)
+    for(uint32_t i = 0; i < getNumOfScripts(); i++)
     {
         std::string script = getScript(i);
         asIScriptModule* module = engine->GetModule(script.c_str());
@@ -72,21 +73,21 @@ std::string ScriptRoutine::getName()
 
 }
 
-void ScriptRoutine::setType(ScriptRoutine::Type type)
+void ScriptRoutine::setHookDecl(std::string hookDecl)
 {
-    if(m_typet != ScriptRoutine::None)
+    if(m_hookDecl != "")
     {
         return;
 
     }
 
-    m_typet = type;
+    m_hookDecl = hookDecl;
 
 }
 
-ScriptRoutine::Type ScriptRoutine::getType()
+std::string ScriptRoutine::getHookDecl()
 {
-    return m_typet;
+    return m_hookDecl;
 
 }
 
@@ -120,7 +121,7 @@ void ScriptRoutine::remScript(std::string script)
 
 bool ScriptRoutine::hasScript(std::string script)
 {
-    for(unsigned int i = 0; i < m_scripts.size(); i++)
+    for(uint32_t i = 0; i < m_scripts.size(); i++)
     {
         if(m_scripts[i] == script)
         {
@@ -134,13 +135,13 @@ bool ScriptRoutine::hasScript(std::string script)
 
 }
 
-unsigned int ScriptRoutine::getNumOfScripts()
+uint32_t ScriptRoutine::getNumOfScripts()
 {
     return m_scripts.size();
 
 }
 
-std::string ScriptRoutine::getScript(unsigned int i)
+std::string ScriptRoutine::getScript(uint32_t i)
 {
     if(i >= getNumOfScripts())
     {
@@ -192,7 +193,7 @@ unsigned int ScriptRoutine::getNumOfHooks()
 
 }
 
-asIScriptFunction* ScriptRoutine::getHook(unsigned int i)
+asIScriptFunction* ScriptRoutine::getHook(uint32_t i)
 {
     if(i >= getNumOfHooks())
     {
@@ -202,44 +203,12 @@ asIScriptFunction* ScriptRoutine::getHook(unsigned int i)
 
     std::list<asIScriptFunction*>::iterator it;
     it = m_hooks.begin();
-    for(unsigned int u = 0; u < i; u++)
+    for(uint32_t u = 0; u < i; u++)
     {
         it++;
 
     }
 
     return *it;
-
-}
-
-std::string ScriptRoutine::getHookDecl()
-{
-    if(m_typet == ScriptRoutine::Init)
-    {
-        return "void onInit(Robot@)";
-
-    }
-    else if(m_typet == ScriptRoutine::Disabled)
-    {
-        return "void onDisabled(Robot@)";
-
-    }
-    else if(m_typet == ScriptRoutine::Autonomous)
-    {
-        return "void onAutonomous(Robot@)";
-
-    }
-    else if(m_typet == ScriptRoutine::OperatorControl)
-    {
-        return "void onOperatorControl(Robot@)";
-
-    }
-    else if(m_typet == ScriptRoutine::Test)
-    {
-        return "void onTest(Robot@)";
-
-    }
-
-    return "";
 
 }

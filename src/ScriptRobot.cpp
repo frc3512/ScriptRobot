@@ -1,7 +1,6 @@
 #include "ScriptRobot.h"
 #include "ScriptWPILib.h"
 #include "DefaultPlugin.h"
-#include <iostream>
 #include <WPILib.h>
 
 void loadSCPKG(char* path)
@@ -30,12 +29,14 @@ ScriptRobot::ScriptRobot()
 {
     m_watchdog.SetEnabled(false);
 
-    m_engine = asCreateScriptEngine(ANGELSCRIPT_VERSION);
+    m_engine = new ScriptEngine;
+    m_engine->addPlugin(new DefaultPlugin);
+    m_engine->addPlugin(new ScriptWPILib);
 
     m_routine = NULL;
     m_package = NULL;
 
-    m_ctx = m_engine->CreateContext();
+    m_ctx = m_engine->get()->CreateContext();
     load("FRC_UserProgram.scpkg");
 
 }
@@ -44,7 +45,7 @@ ScriptRobot::~ScriptRobot()
 {
     unload();
     m_ctx->Release();
-    m_engine->Release();
+    m_engine->remRef();
 
 }
 
@@ -96,23 +97,10 @@ void ScriptRobot::load(std::string path)
     }
 
     ScriptPackage* temp = new ScriptPackage;
-    temp->read(path);
-    if(temp->getLastError() != ScriptPackage::NotLoaded)
+    temp->load(path);
+    if(temp->getError() != ScriptPackage::NotBuilt)
     {
-        std::cout << temp->getLastErrorMessage() << "\n" << std::flush;
-        delete temp;
-        reloading = false;
-        return;
-
-    }
-
-    setup(temp);
-std::cout << "loading\n";
-    temp->load();
-std::cout << "finished loading\n";
-    if(temp->getLastError() != ScriptPackage::NotBuilt)
-    {
-        std::cout << temp->getLastErrorMessage() << "\n" << std::flush;
+        std::cout << "could not load error: " << temp->getError << "\n" << std::flush;
         delete temp;
         reloading = false;
         return;
@@ -128,11 +116,10 @@ std::cout << "finished loading\n";
     temp->build(m_engine);
     if(!temp->isValid())
     {
-        std::cout << temp->getLastErrorMessage() << "\n" << std::flush;
+        std::cout << "error while building: " << temp->getError() << "\n" << std::flush;
         delete temp;
         if(m_package != NULL)
         {
-            m_package->load();
             m_package->build(m_engine);
 
         }
@@ -149,7 +136,7 @@ std::cout << "finished loading\n";
     }
     m_package = temp;
 
-    std::cout << m_package->getLastErrorMessage() << "\n" << std::flush;
+    std::cout << "succesfully built: " << m_package->getError() << "\n" << std::flush;
 
     m_disabledRoutine = m_package->getDefaultDisabledRoutine();
     m_autonomousRoutine = m_package->getDefaultAutonomousRoutine();
@@ -168,7 +155,6 @@ void ScriptRobot::unload()
 {
     if(m_package != NULL)
     {
-        m_package->release();
         delete m_package;
         m_package = NULL;
 
@@ -241,15 +227,6 @@ void ScriptRobot::setTestRoutine(std::string name)
 std::string ScriptRobot::getTestRoutine()
 {
     return m_testRoutine;
-
-}
-
-void ScriptRobot::setup(ScriptPackage* package)
-{
-    package->addPlugin(new DefaultPlugin);
-    package->addPlugin(new ScriptWPILib);
-
-    onSetup(package);
 
 }
 

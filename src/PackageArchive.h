@@ -11,14 +11,13 @@
 #ifdef _WIN32
 #include <winsock2.h>
 #include <stdint.h>
-#elif UNIX
+#elif __linux__
 #include <netinet/in.h>
 #include <stdint.h>
-#elif defined __BORLANDC__ || defined __VXWORKS__
+#elif __VXWORKS__
 #include <netinet/in.h>
 #include <types/vxTypes.h>
 #endif
-
 
 class PackageArchive
 {
@@ -45,11 +44,11 @@ public:
 
     void rem(std::string name);
 
-    PackageSection* getSection(std::string name);
+    PackageSection getSection(std::string name);
 
-    std::list<PackageSection*> getSections();
+    std::list<PackageSection> getSections();
 
-    void set(std::list<PackageSection*> sections);
+    void set(std::list<PackageSection> sections);
 
     void clear();
 
@@ -62,7 +61,7 @@ private:
 
     std::string m_path;
 
-    std::list<PackageSection*> m_sections;
+    std::list<PackageSection> m_sections;
 
 };
 

@@ -5,6 +5,12 @@
 *.o
 *.out
 ctdt.c
+*.css
+*.html
+*.exe
+*.csv
+*.jpg
+*.png
 
 CMakeFiles/
 CMakeCache.txt

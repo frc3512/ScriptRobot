@@ -83,14 +83,14 @@ PackageArchive::Error PackageArchive::write(std::string path)
     uint32_t headerSize = header.size();
     file.write(header.c_str(), headerSize);
 
-    std::list<PackageSection*>::iterator it;
+    std::list<PackageSection>::iterator it;
     for(it = m_sections.begin(); it != m_sections.end(); it++)
     {
-        writeUInt(file, (*it)->getNameSize());
-        writeStr(file, (*it)->getName());
+        writeUInt(file, it->getNameSize());
+        writeStr(file, it->getName());
 
-        writeUInt(file, (*it)->getFileSize());
-        writeStr(file, (*it)->getFile());
+        writeUInt(file, it->getFileSize());
+        writeStr(file, it->getFile());
 
     }
 
@@ -106,7 +106,7 @@ std::string PackageArchive::getPath()
 
 void PackageArchive::add(std::string name, std::string file)
 {
-    PackageSection* section = new PackageSection(name, file);
+    PackageSection section(name, file);
 
     rem(name);
     m_sections.push_back(section);
@@ -115,12 +115,11 @@ void PackageArchive::add(std::string name, std::string file)
 
 void PackageArchive::rem(std::string name)
 {
-    std::list<PackageSection*>::iterator it;
+    std::list<PackageSection>::iterator it;
     for(it = m_sections.begin(); it != m_sections.end(); it++)
     {
-        if((*it)->getName() == name)
+        if(it->getName() == name)
         {
-            delete (*it);
             m_sections.erase(it);
             return;
 
@@ -130,30 +129,30 @@ void PackageArchive::rem(std::string name)
 
 }
 
-PackageSection* PackageArchive::getSection(std::string name)
+PackageSection PackageArchive::getSection(std::string name)
 {
-    std::list<PackageSection*>::iterator it;
+    std::list<PackageSection>::iterator it;
     for(it = m_sections.begin(); it != m_sections.end(); it++)
     {
-        if((*it)->getName() == name)
+        if(it->getName() == name)
         {
-            return (*it);
+            return *it;
 
         }
 
     }
 
-    return NULL;
+    return PackageSection();
 
 }
 
-std::list<PackageSection*> PackageArchive::getSections()
+std::list<PackageSection> PackageArchive::getSections()
 {
     return m_sections;
 
 }
 
-void PackageArchive::set(std::list<PackageSection*> sections)
+void PackageArchive::set(std::list<PackageSection> sections)
 {
     m_sections = sections;
 
@@ -161,19 +160,14 @@ void PackageArchive::set(std::list<PackageSection*> sections)
 
 void PackageArchive::clear()
 {
-    while(!m_sections.empty())
-    {
-        delete (*m_sections.begin());
-        m_sections.erase(m_sections.begin());
-
-    }
+    m_sections.clear();
 
 }
 
 uint32_t PackageArchive::readUInt(std::fstream& file)
 {
     uint32_t num = 0;
-    file.read((char*)&num, sizeof(unsigned int));
+    file.read((char*)&num, sizeof(uint32_t));
     num = ntohl(num);
 
     return num;
