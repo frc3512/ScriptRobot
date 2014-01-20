@@ -1,3 +1,5 @@
+#if !(defined _WIN32 || __linux__)
+
 #include "ScriptRobot.h"
 #include "ScriptWPILib.h"
 #include "DefaultPlugin.h"
@@ -422,3 +424,5 @@ void ScriptRobot::executeRoutine()
 }
 
 START_ROBOT_CLASS(ScriptRobot)
+
+#endif

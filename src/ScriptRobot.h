@@ -1,3 +1,5 @@
+#if !(defined __WIN32 || __linux__)
+
 #ifndef SCRIPTROBOT_H_
 #define SCRIPTROBOT_H_
 
@@ -65,4 +67,5 @@ private:
 
 #endif /* SCRIPTROBOT_H_ */
 
+#endif
 
