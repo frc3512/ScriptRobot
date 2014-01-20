@@ -310,6 +310,12 @@ ScriptRoutine* ScriptPackage::getRoutine(std::string name)
 
 }
 
+std::list<ScriptRoutine> ScriptPackage::getRoutines()
+{
+    return m_routines;
+
+}
+
 ScriptRoutine* ScriptPackage::getInitRoutine()
 {
     return &m_initRoutine;

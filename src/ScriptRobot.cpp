@@ -15,7 +15,7 @@ void reloadSCPKG()
     ScriptRobot* instance = (ScriptRobot*)&RobotBase::getInstance();
     if(instance->getPackage() == NULL)
     {
-        instance->load("FRC_UserProgram.scpkg");
+        instance->load("/FRC_UserProgram.scpkg");
         return;
 
     }
@@ -37,7 +37,7 @@ ScriptRobot::ScriptRobot()
     m_package = NULL;
 
     m_ctx = m_engine->get()->CreateContext();
-    load("FRC_UserProgram.scpkg");
+    load("/FRC_UserProgram.scpkg");
 
 }
 
@@ -96,6 +96,7 @@ void ScriptRobot::load(std::string path)
 
     }
 
+    std::cout << "loading from path: " << path << "\n" << std::flush;
     ScriptPackage* temp = new ScriptPackage;
     temp->load(path);
     if(temp->getError() != ScriptPackage::NotBuilt)
@@ -103,32 +104,44 @@ void ScriptRobot::load(std::string path)
         std::cout << "could not load error: " << temp->getError() << "\n" << std::flush;
         delete temp;
         reloading = false;
+        std::cout << "ADDRESS: " << m_package << "\n";
         return;
 
     }
 
     m_ctx->Release();
+    std::cout << "releasing old package\n" << std::flush;
     if(m_package != NULL)
     {
         m_package->unload();
 
     }
+    else
+    {
+    	std::cout << "THE PACKAGE DIDN'T EXIST\n" << std::flush;
 
-    temp->build(m_engine);
+    }
     m_ctx = m_engine->get()->CreateContext();
+
+    std::cout << "building engine\n" << std::flush;
+    temp->build(m_engine);
     if(temp->getError() != ScriptPackage::NoError)
     {
         std::cout << "error while building: " << temp->getError() << "\n" << std::flush;
-        delete temp;
+        temp->unload();
         if(m_package != NULL)
         {
             m_package->build(m_engine);
 
         }
+        delete temp;
         reloading = false;
+        std::cout << "ADDRESS: " << m_package << "\n";
         return;
 
     }
+
+    std::cout << "deleting old package\n" << std::flush;
 
     if(m_package != NULL)
     {
@@ -139,6 +152,8 @@ void ScriptRobot::load(std::string path)
     m_package = temp;
 
     std::cout << "succesfully built: " << m_package->getError() << "\n" << std::flush;
+
+    std::cout << "ADDRESS: " << m_package << "\n";
 
     m_disabledRoutine = m_package->getDefaultDisabledRoutine();
     m_autonomousRoutine = m_package->getDefaultAutonomousRoutine();
@@ -234,21 +249,16 @@ std::string ScriptRobot::getTestRoutine()
 
 void ScriptRobot::StartCompetition()
 {
-    LiveWindow* lw = LiveWindow::GetInstance();
-
     SmartDashboard::init();
     NetworkTable::GetTable("LiveWindow")->GetSubTable("~STATUS~")->PutBoolean("LW Enabled", false);
 
     onInit();
-
-    lw->SetEnabled(false);
 
     while(true)
     {
         if(isReloading())
         {
             m_routine = NULL;
-
             while(isReloading())
             {
                 Wait(0.01);
@@ -318,7 +328,6 @@ void ScriptRobot::StartCompetition()
         }
         else if(IsOperatorControl())
         {
-            lw->SetEnabled(true);
             m_ds->InOperatorControl(true);
             while(IsOperatorControl() && IsEnabled())
             {
@@ -344,8 +353,8 @@ void ScriptRobot::StartCompetition()
                 onOperatorControl();
                 Wait(0.01);
             }
+
             m_ds->InOperatorControl(false);
-            lw->SetEnabled(false);
 
         }
         else if(IsTest())

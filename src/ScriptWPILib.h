@@ -21,6 +21,8 @@ class asDriverStation
 public:
     asDriverStation();
 
+    ~asDriverStation();
+
     //LCD
     void print(int line, int column, std::string msg);
     void print(int line, std::string msg);

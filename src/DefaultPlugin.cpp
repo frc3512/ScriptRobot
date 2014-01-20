@@ -27,6 +27,7 @@ void DefaultPlugin::onInit()
     registerConvertString(m_engine->get());
     registerConvertUnits(m_engine->get());
 
+    m_engine->get()->SetMessageCallback(asFUNCTION(DefaultPlugin::messageCallback), 0, asCALL_CDECL);
     m_engine->get()->RegisterGlobalFunction("void print(string)", asFUNCTION(DefaultPlugin::print), asCALL_CDECL);
 
     m_factory->add(new FactoryInfo("int", intFactory, intRecycler, false, 1, false));

@@ -4,6 +4,7 @@ set(NAME scriptrobot)
 project(${NAME})
 find_package(WPILib)
 include_directories(${WPILib_INCLUDE_DIRS})
+include_directories(src/)
 
 set(CMAKE_CXX_FLAGS "-O3 -Wall -s -std=c++11 -fpermissive -D__VXWORKS__ -w")
 set(CMAKE_C_FLAGS "-O3 -Wall -s -std=c11 -fpermissive -D__VXWORKS__ -w")

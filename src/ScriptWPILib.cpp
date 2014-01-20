@@ -10,6 +10,11 @@ asDriverStation::asDriverStation()
 
 }
 
+asDriverStation::~asDriverStation()
+{
+
+}
+
 //LCD
 void asDriverStation::print(int line, int column, std::string msg)
 {
@@ -427,11 +432,12 @@ void ScriptWPILib::registerRobotDrive(asIScriptEngine* engine)
     ///// TankDrive /////
     assert(engine->RegisterObjectMethod("RobotDrive", "void tankDrive(Joystick@, Joystick@, bool squareInputs = true)", asMETHODPR(RobotDrive, TankDrive, (GenericHID*, GenericHID*, bool), void), asCALL_THISCALL) >= 0);
     assert(engine->RegisterObjectMethod("RobotDrive", "void tankDrive(Joystick@, uint, Joystick@, uint, bool squareInputs = true)", asMETHODPR(RobotDrive, TankDrive, (GenericHID*, uint32_t, GenericHID*, uint32_t, bool), void), asCALL_THISCALL) >= 0);
+    assert(engine->RegisterObjectMethod("RobotDrive", "void tankDrive(float, float, bool squareInputs = true)", asMETHODPR(RobotDrive, TankDrive, (float, float, bool), void), asCALL_THISCALL) >= 0);
 
     ///// ArcadeDrive /////
     assert(engine->RegisterObjectMethod("RobotDrive", "void arcadeDrive(Joystick@, bool squareInputs = true)", asMETHODPR(RobotDrive, ArcadeDrive, (GenericHID*, bool), void), asCALL_THISCALL) >= 0);
     assert(engine->RegisterObjectMethod("RobotDrive", "void arcadeDrive(Joystick@, uint, Joystick@, uint, bool squareInputs = true)", asMETHODPR(RobotDrive, ArcadeDrive, (GenericHID*, uint32_t, GenericHID*, uint32_t, bool), void), asCALL_THISCALL) >= 0);
-
+    assert(engine->RegisterObjectMethod("RobotDrive", "void arcadeDrive(float, float, bool squareInputs = true)", asMETHODPR(RobotDrive, ArcadeDrive, (float, float, bool), void), asCALL_THISCALL) >= 0);
     ///// MecanumDrive /////
     assert(engine->RegisterObjectMethod("RobotDrive", "void mecanumDrive(float, float, float, float)", asMETHOD(RobotDrive, MecanumDrive_Cartesian), asCALL_THISCALL) >= 0);
     assert(engine->RegisterObjectMethod("RobotDrive", "void mecanumDrive(float, float, float)", asMETHOD(RobotDrive, MecanumDrive_Polar), asCALL_THISCALL) >= 0);

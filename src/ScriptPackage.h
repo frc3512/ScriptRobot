@@ -55,6 +55,8 @@ public:
 
     ScriptRoutine* getRoutine(std::string name);
 
+    std::list<ScriptRoutine> getRoutines();
+
     ScriptRoutine* getInitRoutine();
 
     std::string getDefaultDisabledRoutine();

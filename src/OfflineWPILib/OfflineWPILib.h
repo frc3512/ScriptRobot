@@ -282,8 +282,10 @@ public:
     void SetMaxOutput(float){}
     void TankDrive(GenericHID*, GenericHID*, bool squareInputs = true){}
     void TankDrive(GenericHID*, unsigned int, GenericHID*, unsigned int, bool squareInputs = true){}
+    void TankDrive(float, float, bool squareInputs = true){}
     void ArcadeDrive(GenericHID*, bool squareInputs = true){}
     void ArcadeDrive(GenericHID*, unsigned int, GenericHID*, unsigned int, bool squareInputs = true){}
+    void ArcadeDrive(float, float, bool squareInputs = true){}
     void MecanumDrive_Cartesian(float, float, float, float){}
     void MecanumDrive_Polar(float, float, float){}
     void HolonomicDrive(float, float, float){}
